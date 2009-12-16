@@ -15,10 +15,21 @@ Add the 'autoreports' app to your list of INSTALLED_APPS.
 
 Redefine 'admin/change_list.html' templates as follows::
 
-    {% block object-tools %}
-      {{ block.super }}
-      {% auto_reports_admin %}
-    {% endblock %}
+  {% load adminmedia admin_list i18n auto_reports_tags %} {# add auto_reports_tags #}
+
+  {% block object-tools %}
+    {% if has_add_permission %}
+      <ul class="object-tools">
+        <li>
+          <a href="add/{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+            {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+          </a>
+        </li>
+        {% auto_reports_admin %} {# add this stuff #}
+      </ul>
+    {% endif %}
+  {% endblock %}
+
 
 By default it will takes 'list_display' fields to export in CSV.
 You can redefine it in every model admin you want::
