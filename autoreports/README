@@ -1,0 +1,36 @@
+.. contents::
+
+===========
+Autoreports
+===========
+
+Autoreports is a Django application that lets you create reports in very
+Django Admin listing
+
+Installation
+============
+
+Add the 'autoreports' app to your list of INSTALLED_APPS.
+
+
+Redefine 'admin/change_list.html' templates as follows::
+
+    {% block object-tools %}
+      {{ block.super }}
+      {% auto_reports_admin %}
+    {% endblock %}
+
+By default it will takes 'list_display' fields to export in CSV.
+You can redefine it in every model admin you want::
+
+  class FooModelAdmin(SearchForm):
+      report_fields = ('name', 'description', 'category', ...)
+
+Development
+===========
+
+You can get the last bleeding edge version of searchform by doing a checkout
+of its subversion repository::
+
+  svn co https//svnpub.yaco.es/djangoapps/autoreports/trunk/autoreports
+
