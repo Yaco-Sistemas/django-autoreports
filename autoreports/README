@@ -15,7 +15,7 @@ Add the 'autoreports' app to your list of INSTALLED_APPS.
 
 Redefine 'admin/change_list.html' templates as follows::
 
-  {% load adminmedia admin_list i18n auto_reports_tags %} {# add auto_reports_tags #}
+  {% load adminmedia admin_list i18n autoreports_tags %} {# add auto_reports_tags #}
 
   {% block object-tools %}
     {% if has_add_permission %}
@@ -25,7 +25,7 @@ Redefine 'admin/change_list.html' templates as follows::
             {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
           </a>
         </li>
-        {% auto_reports_admin %} {# add this stuff #}
+        {% autoreports_admin %} {# add this stuff #}
       </ul>
     {% endif %}
   {% endblock %}
