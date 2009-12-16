@@ -2,12 +2,21 @@ from django import template
 
 from cmsutils.adminfilters import QueryStringManager
 
+try:
+    from merengue.adminsite import BaseAdminSite
+    IN_MERENGUE = True
+except:
+    IN_MERENGUE = False
+    class BaseAdminSite(object):
+        pass
+
 register = template.Library()
 
 
 def autoreports_admin(context):
     context_tag = {}
-    model_admin = context.get('model_admin', None)
+    changelist = context.get('cl', None)
+    model_admin = getattr(changelist, 'model_admin', None)
     if model_admin:
         context_tag['module'] = model_admin.__module__
         context_tag['class_name'] = model_admin.__class__.__name__
@@ -27,13 +36,14 @@ def autoreports_admin(context):
             query_string += query_string_extra
         context_tag['query_string'] = query_string
     return context_tag
-smart_relations_object_tool = register.inclusion_tag('autoreports/autoreports_admin.html', takes_context=True)(autoreports_admin)
+autoreports_admin = register.inclusion_tag('autoreports/autoreports_admin.html', takes_context=True)(autoreports_admin)
 
 
 def _object_owner(request, model_admin):
     admin_site = model_admin.admin_site
-    next = admin_site.base_tools_model_admins.get(getattr(model_admin, 'tool_name', None), None)
-    if next:
-        object_id = admin_site.base_object_ids.get(getattr(model_admin, 'tool_name', None), None)
-        return next._get_base_content(request, object_id, next)
+    if IN_MERENGUE and isinstance(admin_site, BaseAdminSite):
+        next = admin_site.base_tools_model_admins.get(getattr(model_admin, 'tool_name', None), None)
+        if next:
+            object_id = admin_site.base_object_ids.get(getattr(model_admin, 'tool_name', None), None)
+            return next._get_base_content(request, object_id, next)
     return None
