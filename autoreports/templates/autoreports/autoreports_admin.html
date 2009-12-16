@@ -1,0 +1,8 @@
+{% load i18n %}
+{% if app_label and module_name and module and class_name %}
+    <li>
+        <a href="{% url model_admin_reports_view app_label module_name module class_name %}{{ query_string }}">
+            {% trans "Report" %}
+        </a>
+    </li>
+{% endif %}
