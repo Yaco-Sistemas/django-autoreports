@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block after_related_objects %}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <h1>{% trans "Report Form" %}</h1>
+        <div id="content-main">
+            <form action="." method="get">
+                {{ form.as_django_admin }}
+            <div class="submit-row">
+                <input type="submit" name="__report" class="default" value="{% trans "Report" %}"/>
+            </div>
+            </form>
+        </div>
+{% endblock %}
