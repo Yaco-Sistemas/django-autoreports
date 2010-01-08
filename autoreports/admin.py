@@ -5,6 +5,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 from autoreports.forms import ReportForm
+from autoreports.views import EXCLUDE_FIELDS
 
 
 class ReportAdmin(admin.ModelAdmin):
@@ -33,4 +34,7 @@ class ReportAdmin(admin.ModelAdmin):
         return super(ReportAdmin, self).__call__(request, url and unquote(url) or url)
 
     def get_report_fields(self):
-        return self.report_fields
+        report_fields = self.report_fields or self.list_display
+        set_fields = set(report_fields) - set(EXCLUDE_FIELDS)
+        report_fields = list(set_fields)
+        return report_fields
