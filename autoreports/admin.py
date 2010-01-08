@@ -10,6 +10,7 @@ from autoreports.forms import ReportForm
 class ReportAdmin(admin.ModelAdmin):
 
     report_form = ReportForm
+    report_fields = ()
 
     def report(self, request):
         form_class = modelform_factory(model=self.model,
