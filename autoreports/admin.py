@@ -18,8 +18,12 @@ class ReportAdmin(admin.ModelAdmin):
         if request.GET.get('__report', None):
             queryset = self.queryset(request)
             return form.get_report(request, queryset)
-        return render_to_response('autoreports/autoreports_form.html', {'form': form},
-                        context_instance=RequestContext(request))
+        return render_to_response('autoreports/autoreports_form.html',
+                                 {
+                                  'form': form,
+                                  'opts': self.opts,
+                                    },
+                                 context_instance=RequestContext(request))
 
     def __call__(self, request, url):
         if url and url.endswith('report'):

@@ -31,7 +31,7 @@ class ReportForm(forms.ModelForm, FormAdminDjango):
         for field in fields:
             field_real = self.simply_field(field, fields_real, translatable_fields_lang)
             if not field_real:
-                self.advanced_field(field, field, self._meta.model, fields_real)
+                self.related_field(field, field, self._meta.model, fields_real)
         self.fields = fields_real
 
     def get_report(self, request, queryset):
@@ -43,34 +43,48 @@ class ReportForm(forms.ModelForm, FormAdminDjango):
                  fields=report_fields,
                  queryset=queryset)
 
+    def get_field(self, field, fields, model):
+        if field in fields:
+            return fields[field]
+        form = modelform_factory(model)()
+        return form.base_fields.get(field, None)
+
+    def set_field(self, field_name, field, fields_real):
+        if field:
+            field.help_text = field_name
+            fields_real[field_name] = field
+
     def simply_field(self, field, fields_real, translatable_fields_lang):
         field_real = None
+        model = self._meta.model
         if field in self.fields: # fields normales
-            field_real = self.fields[field]
-            if getattr(self._meta.model, field, None): # m2m
-                fields_real['%s__id__in' % field] = field_real
+            field_real = self.get_field(field, self.fields, model)
+            if getattr(model, field, None): # m2m
+                self.set_field('%s__id__in' % field, field_real, fields_real)
             else:
-                fields_real['%s__icontains' % field] = field_real
+                self.set_field('%s__icontains' % field, field_real, fields_real)
         else:
             field_trans = '%s_%s' %(field, get_language())
             if field_trans in translatable_fields_lang: # transmeta fields
-                field_real = self.fields[field_trans]
-                fields_real['%s__icontains' % field_trans] = field_real
+                field_real = self.get_field(field_trans, self.fields, model)
+                self.set_field('%s__icontains' % field_trans, field_real, fields_real)
         return field_real
 
-    def advanced_field(self, field_name, field, model, fields_real):
+    def related_field(self, field_name, field, model, fields_real):
         field_split = field.split('__')
         relation = getattr(model, field_split[0])
         field = '__'.join(field_split[1:])
-        model_next = relation.field.formfield().queryset.model
-        if '__' in field:
-            self.advanced_field(field_name, field, model_next, fields_real)
-            return
-        form = modelform_factory(model_next)
-        if not field:
-            fields_real['%s__id__in' % field_name] = relation.field.formfield()
-        else:
-            fields_real['%s__icontains' % field_name] = form.base_fields[field]
+        relation_field = getattr(relation, 'field', None)
+        if relation_field:
+            model_next = relation_field.formfield().queryset.model
+            if '__' in field:
+                self.related_field(field_name, field, model_next, fields_real)
+                return
+            form = modelform_factory(model_next)
+            if not field:
+                self.set_field('%s__id__in' % field_name, relation.field.formfield(), fields_real)
+            else:
+                self.set_field('%s__icontains' % field_name, form.base_fields[field], fields_real)
 
     def get_translatable_fields(self, cls):
         classes = cls._meta.get_parent_list()

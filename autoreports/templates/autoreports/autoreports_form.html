@@ -1,8 +1,20 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
 
-{% block after_related_objects %}
+{% block extrahead %}
+    {{ block.super }}
+    <link href="/media_admin/css/forms.css" type="text/css" rel="stylesheet">
 {% endblock %}
+
+{% block breadcrumbs %}{% if not is_popup %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">{% trans opts.app_label.title %}</a> &rsaquo;
+     <a href="../">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+     {% trans "Report Form" %}
+</div>
+{% endif %}{% endblock %}
+
 
 {% block content %}
     {{ block.super }}
