@@ -20,7 +20,7 @@ class FormAdminDjango(object):
         return render_to_string('autoreports/form_admin_django.html', {'form': self, })
 
 
-class ReportForm(forms.ModelForm, FormAdminDjango):
+class ReportForm(object):
 
     def __init__(self, fields, *args, **kwargs):
         super(ReportForm, self).__init__(*args, **kwargs)
@@ -32,16 +32,7 @@ class ReportForm(forms.ModelForm, FormAdminDjango):
             field_real = self.simply_field(field, fields_real, translatable_fields_lang)
             if not field_real:
                 self.related_field(field, field, self._meta.model, fields_real)
-        self.fields = fields_real
-
-    def get_report(self, request, queryset):
-        report_fields = [field.replace('__icontains', '').replace('__iexact', '').replace('__id__in', '')
-                            for field in self.fields.keys()]
-        return reports_view(request,
-                 self._meta.model._meta.app_label,
-                 self._meta.model._meta.module_name,
-                 fields=report_fields,
-                 queryset=queryset)
+        self.fields_real = fields_real
 
     def get_field(self, field, fields, model):
         if field in fields:
@@ -51,7 +42,6 @@ class ReportForm(forms.ModelForm, FormAdminDjango):
 
     def set_field(self, field_name, field, fields_real):
         if field:
-            field.help_text = field_name
             fields_real[field_name] = field
 
     def simply_field(self, field, fields_real, translatable_fields_lang):
@@ -92,3 +82,42 @@ class ReportForm(forms.ModelForm, FormAdminDjango):
         translatable_fields = []
         [translatable_fields.extend(cl._meta.translatable_fields) for cl in classes if getattr(cl._meta, 'translatable_fields', None)]
         return translatable_fields
+
+
+class ReportDisplayForm(ReportForm, forms.ModelForm, FormAdminDjango):
+
+    def __init__(self, fields, *args, **kwargs):
+        super(ReportDisplayForm, self).__init__(fields, *args, **kwargs)
+        choices = [(field_name, unicode(field.label)) for field_name, field in self.fields_real.items()]
+        callables_choices = self.get_callables_choices(fields)
+        choices.extend(callables_choices)
+        self.fields = {'__report_display_fields_choices': forms.MultipleChoiceField(
+                                                    widget=forms.CheckboxSelectMultiple(),
+                                                    choices=choices,
+                                                    initial=dict(choices).keys()),
+                      }
+
+    def get_callables_choices(self, fields):
+        model = self._meta.model
+        callables_choices = []
+        for field_name in fields:
+            field = getattr(model, field_name, None)
+            if field and callable(field):
+                callables_choices.append((field_name, unicode(getattr(field, 'short_description', field_name))))
+        return callables_choices
+
+
+class ReportFilterForm(ReportForm, forms.ModelForm, FormAdminDjango):
+
+    def __init__(self, fields, *args, **kwargs):
+        super(ReportFilterForm, self).__init__(fields, *args, **kwargs)
+        self.fields = self.fields_real
+
+    def get_report(self, request, queryset, report_display_fields):
+        report_filter_fields = [field.replace('__icontains', '').replace('__iexact', '').replace('__id__in', '')
+                            for field in report_display_fields]
+        return reports_view(request,
+                 self._meta.model._meta.app_label,
+                 self._meta.model._meta.module_name,
+                 fields=report_filter_fields,
+                 queryset=queryset)

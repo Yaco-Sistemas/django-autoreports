@@ -4,25 +4,37 @@ from django.forms.models import modelform_factory
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from autoreports.forms import ReportForm
+from autoreports.forms import ReportFilterForm
+from autoreports.forms import ReportDisplayForm
 from autoreports.views import EXCLUDE_FIELDS
 
 
 class ReportAdmin(admin.ModelAdmin):
 
-    report_form = ReportForm
-    report_fields = ()
+    report_form_filter = ReportFilterForm
+    report_form_display = ReportDisplayForm
+    report_filter_fields = ()
+    report_display_fields = ()
 
     def report(self, request):
-        form_class = modelform_factory(model=self.model,
-                          form=self.report_form)
-        form = form_class(fields=self.get_report_fields())
-        if request.GET.get('__report', None):
+        data = request.GET.get('__report', None) and request.GET or None
+
+        form_filter_class = modelform_factory(model=self.model,
+                          form=self.report_form_filter)
+        form_filter = form_filter_class(fields=self.get_report_filter_fields())
+
+        form_display_class = modelform_factory(model=self.model,
+                          form=self.report_form_display)
+        form_display = form_display_class(data=data, fields=self.get_report_display_fields())
+
+        if data and form_display.is_valid():
+            report_display_fields = form_display.cleaned_data['__report_display_fields_choices']
             queryset = self.queryset(request)
-            return form.get_report(request, queryset)
+            return form_filter.get_report(request, queryset, report_display_fields)
         return render_to_response('autoreports/autoreports_form.html',
                                  {
-                                  'form': form,
+                                  'form_filter': form_filter,
+                                  'form_display': form_display,
                                   'opts': self.opts,
                                     },
                                  context_instance=RequestContext(request))
@@ -33,8 +45,14 @@ class ReportAdmin(admin.ModelAdmin):
             return self.report(request)
         return super(ReportAdmin, self).__call__(request, url and unquote(url) or url)
 
-    def get_report_fields(self):
-        report_fields = self.report_fields or self.list_display
-        set_fields = set(report_fields) - set(EXCLUDE_FIELDS)
-        report_fields = list(set_fields)
-        return report_fields
+    def get_report_filter_fields(self):
+        report_filter_fields = self.report_filter_fields or self.list_display
+        set_fields = set(report_filter_fields) - set(EXCLUDE_FIELDS)
+        report_filter_fields = list(set_fields)
+        return report_filter_fields
+
+    def get_report_display_fields(self):
+        report_display_fields = self.report_display_fields or self.list_display
+        set_fields = set(report_display_fields) - set(EXCLUDE_FIELDS)
+        report_display_fields = list(set_fields)
+        return report_display_fields

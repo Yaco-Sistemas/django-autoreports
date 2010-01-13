@@ -6,6 +6,10 @@
     <link href="/media_admin/css/forms.css" type="text/css" rel="stylesheet">
 {% endblock %}
 
+{% block title %}
+    {% trans "Advanced Report" %} {{ block.super }}
+{% endblock %}
+
 {% block breadcrumbs %}{% if not is_popup %}
 <div class="breadcrumbs">
      <a href="../../../">{% trans "Home" %}</a> &rsaquo;
@@ -20,8 +24,9 @@
     {{ block.super }}
     <h1>{% trans "Report Form" %}</h1>
         <div id="content-main">
-            <form action="." method="get">
-                {{ form.as_django_admin }}
+            <form action="." method="get" class="report">
+                {{ form_filter.as_django_admin }}
+                {{ form_display.as_django_admin }}
             <div class="submit-row">
                 <input type="submit" name="__report" class="default" value="{% trans "Report" %}"/>
             </div>
