@@ -41,7 +41,7 @@ def reports_view(request, app_name, model_name, fields=None,
     list_headers = list_headers
     if not list_headers:
         list_headers = translate_fields(list_fields, class_model)
-    name = "%s%s.csv" %(app_name, model_name)
+    name = "%s-%s.csv" %(app_name, model_name)
 
     qsm = QueryStringManager(request)
     object_list = queryset and queryset.filter(filters) or class_model.objects.filter(filters)

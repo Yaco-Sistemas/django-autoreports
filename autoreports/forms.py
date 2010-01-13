@@ -2,6 +2,7 @@ from django import forms
 from django.forms.models import modelform_factory
 from django.template.loader import render_to_string
 
+from django.utils.datastructures import SortedDict
 from django.utils.translation import get_language
 
 from autoreports.views import reports_view
@@ -27,7 +28,7 @@ class ReportForm(object):
         translatable_fields = self.get_translatable_fields(self._meta.model)
         translatable_fields_lang = ['%s_%s' %(field, get_language()) for field in translatable_fields]
         fields_lang = ['%s_%s' %(field, get_language()) for field in fields]
-        fields_real = {}
+        fields_real = SortedDict({})
         for field in fields:
             field_real = self.simply_field(field, fields_real, translatable_fields_lang)
             if not field_real:
@@ -42,6 +43,7 @@ class ReportForm(object):
 
     def set_field(self, field_name, field, fields_real):
         if field:
+            field.help_text = field_name
             fields_real[field_name] = field
 
     def simply_field(self, field, fields_real, translatable_fields_lang):
@@ -71,10 +73,14 @@ class ReportForm(object):
                 self.related_field(field_name, field, model_next, fields_real)
                 return
             form = modelform_factory(model_next)
-            if not field:
-                self.set_field('%s__id__in' % field_name, relation.field.formfield(), fields_real)
+            f = form.base_fields.get(field, None)
+            if f:
+                if not getattr(f, 'queryset', None):
+                    self.set_field('%s__icontains' % field_name, f, fields_real)
+                else:
+                    self.set_field('%s__id__in' % field_name, f, fields_real)
             else:
-                self.set_field('%s__icontains' % field_name, form.base_fields[field], fields_real)
+                self.set_field('%s__id__in' % field_name, relation.field.formfield(), fields_real)
 
     def get_translatable_fields(self, cls):
         classes = cls._meta.get_parent_list()

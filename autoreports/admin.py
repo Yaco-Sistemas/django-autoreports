@@ -47,12 +47,12 @@ class ReportAdmin(admin.ModelAdmin):
 
     def get_report_filter_fields(self):
         report_filter_fields = self.report_filter_fields or self.list_display
-        set_fields = set(report_filter_fields) - set(EXCLUDE_FIELDS)
+        set_fields = [report_filter_field for report_filter_field in report_filter_fields if report_filter_field not in EXCLUDE_FIELDS]
         report_filter_fields = list(set_fields)
         return report_filter_fields
 
     def get_report_display_fields(self):
         report_display_fields = self.report_display_fields or self.list_display
-        set_fields = set(report_display_fields) - set(EXCLUDE_FIELDS)
+        set_fields = [report_display_field for report_display_field in report_display_fields if report_display_field not in EXCLUDE_FIELDS]
         report_display_fields = list(set_fields)
         return report_display_fields
