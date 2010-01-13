@@ -43,7 +43,7 @@ class ReportForm(object):
 
     def set_field(self, field_name, field, fields_real):
         if field:
-            field.help_text = field_name
+            #field.help_text = field_name
             fields_real[field_name] = field
 
     def simply_field(self, field, fields_real, translatable_fields_lang):
