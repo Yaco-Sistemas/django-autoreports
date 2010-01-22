@@ -63,7 +63,7 @@ def model_admin_reports_view(request, app_name, model_name, model_admin_module,
                              model_admin_class_name, fields=None, list_headers=None,
                              ordering=None, filters=Q()):
     model_admin = getattr(__import__(model_admin_module, {}, {}, model_admin_class_name), model_admin_class_name)
-    fields = fields or getattr(model_admin, 'report_fields', None)
+    fields = fields or getattr(model_admin, 'report_display_fields', None) or getattr(model_admin, 'list_display', None)
     if request.GET.get('q', None):
         request = copy(request)
         class_model = ContentType.objects.get(app_label=app_name, model=model_name).model_class()
@@ -77,9 +77,9 @@ def set_filters_search_fields(model_admin, request, filters, class_model):
     query = request.GET.get('q', '')
     lang = get_language()
     for field_name in model_admin.search_fields:
-        if (field_name, class_model):
+        if (field_name, class_model) and is_translate_field(field_name, class_model):
             field_name = '%s_%s' %(field_name, lang)
-        filters = filters | Q(**{'%s__icontains' %field_name: query})
+        filters = filters | Q(**{'%s__icontains' % field_name: query})
     del request.GET['q']
     return filters
 
@@ -117,7 +117,7 @@ def csv_head(request, filename, columns, delimiter=','):
 
 
 def get_row_and_field_name(row, field_name):
-    if '__' not in field_name:
+    if '__' not in field_name or (getattr(row, field_name, None) and callable(getattr(row, field_name))):
         return [(row, field_name)]
     field_split = field_name.split('__')
     row = getattr(row, field_split[0])
