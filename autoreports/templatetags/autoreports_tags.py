@@ -1,12 +1,15 @@
+import re
 from django import template
 
 from cmsutils.adminfilters import QueryStringManager
+from autoreports.admin import ReportAdmin
 
 try:
     from merengue.adminsite import BaseAdminSite
     IN_MERENGUE = True
 except:
     IN_MERENGUE = False
+
     class BaseAdminSite(object):
         pass
 
@@ -47,3 +50,27 @@ def _object_owner(request, model_admin):
             object_id = admin_site.base_object_ids.get(getattr(model_admin, 'tool_name', None), None)
             return next._get_base_content(request, object_id, next)
     return None
+
+
+class IsSonOfReportAdminNode(template.Node):
+
+    def __init__(self, var_name):
+        self.var_name = var_name
+
+    def render(self, context):
+        admin =__import__(context.get('module', ''), {}, {}, context.get('class_name', ''))
+        model_admin = getattr(admin, context.get('class_name', ''), None)
+        context[self.var_name] = issubclass(model_admin, ReportAdmin)
+        return ''
+
+
+@register.tag
+def is_son_of_report_admin(parser, token):
+    try:
+        tag_name, arg = token.contents.split(None, 1)
+    except ValueError:
+        raise template.TemplateSyntaxError, "%r tag requires arguments" % token.contents.split()[0]
+    m = re.search(r'as ([\w_-]+)', arg)
+    if not m:
+        raise template.TemplateSyntaxError, "%r tag needs an 'as variable_name' parameters" % tag_name
+    return IsSonOfReportAdminNode(m.group(1))
