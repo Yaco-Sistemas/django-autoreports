@@ -122,7 +122,7 @@ class ReportFilterForm(ReportForm, forms.ModelForm, FormAdminDjango):
     def get_report(self, request, queryset, report_display_fields):
         report_filter_fields = [field.replace('__icontains', '').replace('__iexact', '').replace('__id__in', '')
                             for field in report_display_fields]
-        list_headers = [unicode(field.label) for key, field in self.fields.items()]
+        list_headers = [unicode(field.label).encode('utf-8') for key, field in self.fields.items() if key in report_display_fields]
         return reports_view(request,
                  self._meta.model._meta.app_label,
                  self._meta.model._meta.module_name,
