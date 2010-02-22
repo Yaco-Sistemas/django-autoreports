@@ -79,6 +79,13 @@ class ReportForm(object):
                     self.set_field('%s__icontains' % field_name, f, fields_real)
                 else:
                     self.set_field('%s__id__in' % field_name, f, fields_real)
+            elif field: # reverse relation
+                m2mrelated = getattr(model_next, field, None)
+                if m2mrelated and getattr(m2mrelated, 'related', None) and getattr(m2mrelated.related, 'model', None):
+                    model_queryset = m2mrelated.related.model
+                    f = forms.ModelChoiceField(queryset=model_queryset.objects.all())
+                    f.label = model_queryset._meta.verbose_name
+                    self.set_field('%s__id__in' % field_name, f, fields_real)
             else:
                 self.set_field('%s__id__in' % field_name, relation.field.formfield(), fields_real)
 
