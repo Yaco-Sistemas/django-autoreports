@@ -16,16 +16,25 @@ class ReportAdmin(admin.ModelAdmin):
     report_filter_fields = ()
     report_display_fields = ()
 
-    def report(self, request):
-        data = request.GET.get('__report', None) and request.GET or None
-
+    def get_report_form_filter(self):
         form_filter_class = modelform_factory(model=self.model,
                           form=self.report_form_filter)
         form_filter = form_filter_class(fields=self.get_report_filter_fields())
 
+        return form_filter
+
+    def get_report_form_display(self, data):
         form_display_class = modelform_factory(model=self.model,
                           form=self.report_form_display)
         form_display = form_display_class(data=data, fields=self.get_report_display_fields())
+
+        return form_display
+
+    def report(self, request):
+        data = request.GET.get('__report', None) and request.GET or None
+
+        form_filter = self.get_report_form_filter()
+        form_display = self.get_report_form_display(data)
 
         if data and form_display.is_valid():
             report_display_fields = form_display.cleaned_data['__report_display_fields_choices']
