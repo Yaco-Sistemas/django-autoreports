@@ -17,7 +17,13 @@ from cmsutils.adminfilters import QueryStringManager
 from autoreports.utils import add_domain
 
 CHANGE_VALUE = {'get_absolute_url': add_domain}
-EXCLUDE_FIELDS = ('batchadmin_checkbox', )
+EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox')
+
+
+def reports_api(request, registry_key):
+    from autoreports.registry import report_registry
+    api = report_registry.get_api_class(registry_key)
+    return api.report(request)
 
 
 def reports_view(request, app_name, model_name, fields=None,

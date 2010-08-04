@@ -1,4 +1,5 @@
 from django import forms
+from django.db import models
 from django.forms.models import modelform_factory
 from django.template.loader import render_to_string
 
@@ -29,9 +30,15 @@ class ReportForm(object):
         translatable_fields_lang = ['%s_%s' %(field, get_language()) for field in translatable_fields]
         fields_lang = ['%s_%s' %(field, get_language()) for field in fields]
         fields_real = SortedDict({})
+        callables_choices = [name for name, description in self.get_callables_choices(fields)]
         for field in fields:
             field_real = self.simply_field(field, fields_real, translatable_fields_lang)
-            if not field_real:
+            model = self._meta.model
+            try:
+                editable = model._meta.get_field_by_name(field)[0].editable
+            except models.FieldDoesNotExist:
+                editable = True
+            if not field_real and editable and field not in callables_choices:
                 self.related_field(field, field, self._meta.model, fields_real)
         self.fields_real = fields_real
 
@@ -96,6 +103,15 @@ class ReportForm(object):
         [translatable_fields.extend(cl._meta.translatable_fields) for cl in classes if getattr(cl._meta, 'translatable_fields', None)]
         return translatable_fields
 
+    def get_callables_choices(self, fields):
+        model = self._meta.model
+        callables_choices = []
+        for field_name in fields:
+            field = getattr(model, field_name, None)
+            if field and callable(field):
+                callables_choices.append((field_name, unicode(getattr(field, 'short_description', field_name))))
+        return callables_choices
+
 
 class ReportDisplayForm(ReportForm, forms.ModelForm, FormAdminDjango):
 
@@ -109,15 +125,6 @@ class ReportDisplayForm(ReportForm, forms.ModelForm, FormAdminDjango):
                                                     choices=choices,
                                                     initial=dict(choices).keys()),
                       }
-
-    def get_callables_choices(self, fields):
-        model = self._meta.model
-        callables_choices = []
-        for field_name in fields:
-            field = getattr(model, field_name, None)
-            if field and callable(field):
-                callables_choices.append((field_name, unicode(getattr(field, 'short_description', field_name))))
-        return callables_choices
 
 
 class ReportFilterForm(ReportForm, forms.ModelForm, FormAdminDjango):
