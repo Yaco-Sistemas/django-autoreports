@@ -8,6 +8,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.utils.translation import ugettext as _
 from django.utils.translation import get_language
 
@@ -18,6 +20,14 @@ from autoreports.utils import add_domain
 
 CHANGE_VALUE = {'get_absolute_url': add_domain}
 EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox')
+
+
+def reports_list(request):
+    from autoreports.registry import report_registry
+    reports_registry = report_registry.get_registered()
+    return render_to_response('autoreports/autoreports_list.html',
+                              {'reports_registry': reports_registry},
+                              context_instance=RequestContext(request))
 
 
 def reports_api(request, registry_key):

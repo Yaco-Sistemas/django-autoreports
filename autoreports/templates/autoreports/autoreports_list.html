@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../">{% trans "Home" %}</a> &rsaquo;
+     <a href=".">{% trans "Reports" %}</a>
+</div>
+{% endblock %}
+
+{% block content %}
+    <table>
+        {% for report_key, report_api in reports_registry.items %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>
+                    <a href="{% url reports_api report_key %}">{{ report_api.verbose_name }}</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

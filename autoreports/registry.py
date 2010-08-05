@@ -34,6 +34,12 @@ class ReportRegistry(object):
         else:
             return True
 
+    def get_registered(self):
+        return self._registry
+
+    def get_registered_keys(self):
+        return self._registry.keys()
+
     def get_registered_api(self):
         return self._registry.values()
 

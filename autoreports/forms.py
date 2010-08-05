@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 
 from django.utils.datastructures import SortedDict
 from django.utils.translation import get_language
+from django.utils.translation import ugettext_lazy as _
 
 from autoreports.models import ReportModelFormMetaclass, modelform_factory
 from autoreports.views import reports_view
@@ -124,6 +125,7 @@ class ReportDisplayForm(ReportForm, forms.ModelForm, FormAdminDjango):
         callables_choices = self.get_callables_choices(fields)
         choices.extend(callables_choices)
         self.fields = {'__report_display_fields_choices': forms.MultipleChoiceField(
+                                                    label=_('Report display fields'),
                                                     widget=forms.CheckboxSelectMultiple(),
                                                     choices=choices,
                                                     initial=dict(choices).keys()),

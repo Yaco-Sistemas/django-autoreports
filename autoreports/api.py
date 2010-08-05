@@ -20,6 +20,7 @@ class ReportApi(object):
         else:
             self.model = model
             super(ReportApi, self).__init__(*args, **kwargs)
+        self.verbose_name = getattr(self, 'verbose_name', self.__class__.__name__)
 
     def get_report_form_filter(self):
         form_filter_class = modelform_factory(model=self.model,
@@ -51,6 +52,7 @@ class ReportApi(object):
         context = {'form_filter': form_filter,
                    'form_display': form_display,
                    'template_base': 'base.html',
+                   'api': self,
                   }
         context.update(extra_context)
         return render_to_response(template_name,
