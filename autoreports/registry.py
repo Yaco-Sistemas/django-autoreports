@@ -51,7 +51,7 @@ class ReportRegistry(object):
             return self._registry[key]
         all_registered_keys = [k for k in self._registry]
         raise ReportNotRegistered(
-            'Data provider %s not registered. Options are: %s'
+            'Registry provider %s not registered. Options are: %s'
             % (key, all_registered_keys),
         )
 

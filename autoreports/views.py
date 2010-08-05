@@ -3,6 +3,7 @@ import locale
 
 from copy import copy
 
+from django.conf import settings
 from django.contrib.admin import site
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -26,7 +27,9 @@ def reports_list(request):
     from autoreports.registry import report_registry
     reports_registry = report_registry.get_registered()
     return render_to_response('autoreports/autoreports_list.html',
-                              {'reports_registry': reports_registry},
+                              {'reports_registry': reports_registry,
+                               'template_base': getattr(settings, 'AUTOREPORTS_BASE_TEMPLATE', 'base.html'),
+                              },
                               context_instance=RequestContext(request))
 
 
