@@ -1,10 +1,9 @@
 from django.contrib.admin import ModelAdmin
-from django.forms.models import modelform_factory
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from autoreports.forms import ReportFilterForm
-from autoreports.forms import ReportDisplayForm
+from autoreports.forms import ReportFilterForm, ReportDisplayForm
+from autoreports.models import modelform_factory
 from autoreports.views import EXCLUDE_FIELDS
 
 

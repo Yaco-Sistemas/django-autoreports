@@ -12,12 +12,13 @@ class ReportRegistry(object):
     def __init__(self):
         self._registry = SortedDict({})
 
-    def register_api(self, model_class, model_api=None):
-        if model_api:
-            key = model_api.__class__.__name__.lower()
-        else:
-            key = "%s_%s" % (model_class._meta.app_label,
-                             model_class._meta.module_name)
+    def register_api(self, model_class, model_api=None, key=None):
+        if not key:
+            if model_api:
+                key = model_api.__name__.lower()
+            else:
+                key = "%s_%s" % (model_class._meta.app_label,
+                                model_class._meta.module_name)
         if self.is_registered(key):
             raise ValueError('Another api is already registered '
                              'with the key %s' % model_class)

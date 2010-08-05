@@ -1,11 +1,12 @@
 from django import forms
 from django.db import models
-from django.forms.models import modelform_factory
+
 from django.template.loader import render_to_string
 
 from django.utils.datastructures import SortedDict
 from django.utils.translation import get_language
 
+from autoreports.models import ReportModelFormMetaclass, modelform_factory
 from autoreports.views import reports_view
 
 
@@ -23,6 +24,8 @@ class FormAdminDjango(object):
 
 
 class ReportForm(object):
+
+    __metaclass__ = ReportModelFormMetaclass
 
     def __init__(self, fields, *args, **kwargs):
         super(ReportForm, self).__init__(*args, **kwargs)
