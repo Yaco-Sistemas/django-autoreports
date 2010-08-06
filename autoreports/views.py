@@ -25,7 +25,7 @@ EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox')
 
 def reports_list(request):
     from autoreports.registry import report_registry
-    reports_registry = report_registry.get_registered()
+    reports_registry = report_registry.get_registered_for_category()
     return render_to_response('autoreports/autoreports_list.html',
                               {'reports_registry': reports_registry,
                                'template_base': getattr(settings, 'AUTOREPORTS_BASE_TEMPLATE', 'base.html'),

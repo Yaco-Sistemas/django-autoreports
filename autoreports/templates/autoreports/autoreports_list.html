@@ -10,13 +10,20 @@
 {% endblock %}
 
 {% block content %}
-    <table>
-        {% for report_key, report_api in reports_registry.items %}
-            <tr class="{% cycle 'row1' 'row2' %}">
+{% for category, values in reports_registry.items %}
+    <table class="autoreports_list">
+        <tr>
+            <th>
+                <div>{% trans "Report of"%} {{ values.category_verbosename }}</div>
+            </th>
+        </tr>
+        {% for report_key, report_api in values.list.items %}
+            <tr class="{% cycle 'filaPar' 'filaImpar' %}">
                 <td>
                     <a href="{% url reports_api report_key %}">{{ report_api.verbose_name }}</a>
                 </td>
             </tr>
         {% endfor %}
     </table>
+{% endfor %}
 {% endblock %}
