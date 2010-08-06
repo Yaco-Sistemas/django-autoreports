@@ -66,9 +66,35 @@ def reports_view(request, app_name, model_name, fields=None,
     object_list = queryset and queryset.filter(filters) or class_model.objects.filter(filters)
     filters = qsm.get_filters()
     filters_clean = {}
-    for key in filters:
-        if not filters[key] == [u'']:
+
+    def convert_filter_datetime(key, endswith, filters, filters_clean):
+        keys_endswith = {'__lte_0': '__lte',
+                         '__gte_0': '__gte',
+                         '__lte_1': '__lte',
+                         '__gte_1': '__gte'}
+        key_new = key.replace(endswith, keys_endswith[endswith])
+        value_new = '%s %s' %(filters.get('%s_0' % key_new, ''),
+                                filters.get('%s_1' % key_new, ''))
+        value_new = value_new.strip()
+        if value_new:
+            filters_clean[key_new] = value_new
+
+    for key, value in filters.items():
+        if value == [u'']:
+            continue
+        elif value == '' and (key.endswith('__lte') or key.endswith('__gte')):
+            continue
+        elif key.endswith('__lte_0'):
+            convert_filter_datetime(key, '__lte_0', filters, filters_clean)
+        elif key.endswith('__gte_0'):
+            convert_filter_datetime(key, '__gte_0', filters, filters_clean)
+        elif key.endswith('__lte_1'):
+            convert_filter_datetime(key, '__lte_1', filters, filters_clean)
+        elif key.endswith('__gte_1'):
+            convert_filter_datetime(key, '__gte_1', filters, filters_clean)
+        else:
             filters_clean[key] = filters[key]
+
     object_list = object_list.filter(**filters_clean)
     if ordering:
         object_list = object_list.order_by(ordering)
@@ -214,6 +240,8 @@ def get_value(row_field_name, class_model, lang):
             value = CHANGE_VALUE[field_name](value)
         if v:
             v = '%s, %s' %(v, value)
+        elif isinstance(value, models.Model):
+            v = unicode(value).encode('utf-8')
         else:
             v = value
     return v

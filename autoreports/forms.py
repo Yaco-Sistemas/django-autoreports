@@ -52,13 +52,9 @@ class ReportForm(BaseReportForm):
         return form.base_fields.get(field, None)
 
     def set_field(self, field_name, field, fields_real):
-        print '%s %s' %(field_name, field)
         choices = getattr(field, 'choices', None)
         if choices and isinstance(choices, list):
             field.choices = [('', '---------'), ] + choices
-        queryset = getattr(field, 'queryset', None)
-        if queryset:
-            field.queryset = queryset.filter(pk__lte=5)
         fields_real[field_name] = field
 
     def simply_field(self, model, field_name, field, fields_real, translatable_fields_lang):
@@ -68,7 +64,21 @@ class ReportForm(BaseReportForm):
             if getattr(model, field, None): # m2m or fk
                 self.set_field('%s__id__in' % field_name, field_real, fields_real)
             else:
-                self.set_field('%s__icontains' % field_name, field_real, fields_real)
+                if isinstance(field_real, forms.DateField) or isinstance(field_real, forms.DateTimeField):
+                    label = field_real.label
+                    field_real.label = "%s >=" % label
+                    self.set_field('%s__gte' % field_name, field_real, fields_real)
+                    from copy import deepcopy
+                    field_real = deepcopy(field_real)
+                    field_real.label = "%s <=" % label
+                    self.set_field('%s__lte' % field_name, field_real, fields_real)
+                elif isinstance(field_real, forms.BooleanField) or isinstance(field_real, forms.BooleanField):
+                    field_real.widget = forms.RadioSelect(choices=((1, _('Yes')),
+                                                                   (0, _('No')),
+                                                        ))
+                    self.set_field(field_name, field_real, fields_real)
+                else:
+                    self.set_field('%s__icontains' % field_name, field_real, fields_real)
         else:
             field_trans = '%s_%s' % (field, get_language())
             field_name_trans = '%s_%s' % (field, get_language())
@@ -136,9 +146,23 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
         self.fields = self.fields_real
 
     def get_report(self, request, queryset, report_display_fields):
-        report_filter_fields = [field.replace('__icontains', '').replace('__iexact', '').replace('__id__in', '')
-                        for field in report_display_fields]
-        list_headers = [unicode(field.label).encode('utf-8') for key, field in self.fields.items() if key in report_display_fields]
+        report_filter_fields = []
+        for field in report_display_fields:
+            if field.endswith('__lte') or field.endswith('__lte_0') or field.endswith('__lte_1'):
+                continue
+            else:
+                field = field.replace('__icontains', '').replace('__iexact', '').replace('__id__in', '').replace('__gte', '').replace('__gte_0', '').replace('__gte_1', '')
+            report_filter_fields.append(field)
+
+        list_headers = []
+        for key, field in self.fields.items():
+            if not key in report_display_fields:
+                continue
+            if key.endswith('__lte') or key.endswith('__lte_0') or key.endswith('__lte_1'):
+                continue
+            elif key.endswith('__gte') or key.endswith('__gte_0') or key.endswith('__gte_1'):
+                field.label = field.label[:-3]
+            list_headers.append(unicode(field.label).encode('utf-8'))
         return reports_view(request,
                  self._meta.model._meta.app_label,
                  self._meta.model._meta.module_name,
