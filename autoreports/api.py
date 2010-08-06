@@ -14,6 +14,9 @@ class ReportApi(object):
     report_form_display = ReportDisplayForm
     report_filter_fields = ()
     report_display_fields = ()
+    category = 'no_category'
+    category_verbosename = None
+
     EXCLUDE_FIELDS = EXCLUDE_FIELDS
 
     def __init__(self, model=None, *args, **kwargs):

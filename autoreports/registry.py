@@ -38,7 +38,19 @@ class ReportRegistry(object):
     def get_registered(self):
         return self._registry
 
-    def get_registered_for_category(self):
+    def get_categories(self):
+        categories = []
+        for key, value in self._registry.items():
+            if getattr(value, 'category', None):
+                category_key = value.category
+                verbose_category = getattr(value, 'category_verbosename', value.category)
+            else:
+                category_key = 'no_category'
+                verbose_category = _('No category')
+            categories.append(category_key)
+        return list(set(categories))
+
+    def get_registered_for_category(self, category=None):
         registry_category = {}
         for key, value in self._registry.items():
             if getattr(value, 'category', None):
@@ -47,6 +59,8 @@ class ReportRegistry(object):
             else:
                 category_key = 'no_category'
                 verbose_category = _('No category')
+            if category and category != category_key:
+                continue
             if not category_key in registry_category:
                 registry_category[category_key] = {'list': {}, 'category_verbosename': verbose_category}
             registry_category[category_key]['list'][key] = value

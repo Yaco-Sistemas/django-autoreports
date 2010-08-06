@@ -23,9 +23,9 @@ CHANGE_VALUE = {'get_absolute_url': add_domain}
 EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox')
 
 
-def reports_list(request):
+def reports_list(request, category_key=None):
     from autoreports.registry import report_registry
-    reports_registry = report_registry.get_registered_for_category()
+    reports_registry = report_registry.get_registered_for_category(category_key)
     return render_to_response('autoreports/autoreports_list.html',
                               {'reports_registry': reports_registry,
                                'template_base': getattr(settings, 'AUTOREPORTS_BASE_TEMPLATE', 'base.html'),
