@@ -18,9 +18,12 @@ from decimal import Decimal
 from cmsutils.adminfilters import QueryStringManager
 
 from autoreports.utils import add_domain
+from autoreports.csv_to_excel import  convert_to_excel
 
 CHANGE_VALUE = {'get_absolute_url': add_domain}
 EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox')
+EXTENSION_FILE = {'csv': 'csv',
+                  'excel': 'xls'}
 
 
 def reports_list(request, category_key=None):
@@ -41,7 +44,8 @@ def reports_api(request, registry_key):
 
 def reports_view(request, app_name, model_name, fields=None,
                  list_headers=None, ordering=None, filters=Q(),
-                 model_admin=None, queryset=None):
+                 model_admin=None, queryset=None,
+                 report_to='csv'):
     request_get = request.GET.copy()
 
     class_model = models.get_model(app_name, model_name)
@@ -60,7 +64,7 @@ def reports_view(request, app_name, model_name, fields=None,
     list_headers = list_headers
     if not list_headers:
         list_headers = translate_fields(list_fields, class_model)
-    name = "%s-%s.csv" %(app_name, model_name)
+    name = "%s-%s.%s" %(app_name, model_name, EXTENSION_FILE[report_to])
 
     qsm = QueryStringManager(request)
     object_list = queryset and queryset.filter(filters) or class_model.objects.filter(filters)
@@ -101,6 +105,8 @@ def reports_view(request, app_name, model_name, fields=None,
 
     response = csv_head(request, name, list_headers)
     csv_body(response, class_model, object_list, list_fields)
+    if report_to == 'excel':
+        convert_to_excel(response)
     return response
 
 

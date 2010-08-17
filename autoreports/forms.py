@@ -145,7 +145,7 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
         super(ReportFilterForm, self).__init__(fields, *args, **kwargs)
         self.fields = self.fields_real
 
-    def get_report(self, request, queryset, report_display_fields):
+    def get_report(self, request, queryset, report_display_fields, report_to):
         report_filter_fields = []
         for field in report_display_fields:
             if field.endswith('__lte') or field.endswith('__lte_0') or field.endswith('__lte_1'):
@@ -168,4 +168,5 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
                  self._meta.model._meta.module_name,
                  fields=report_filter_fields,
                  list_headers=list_headers,
-                 queryset=queryset)
+                 queryset=queryset,
+                 report_to=report_to)

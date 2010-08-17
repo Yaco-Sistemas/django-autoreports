@@ -42,7 +42,8 @@ class ReportApi(object):
         return form_display
 
     def report(self, request, queryset=None, template_name='autoreports/autoreports_form.html', extra_context=None):
-        data = request.GET.get('__report', None) and request.GET or None
+        submit = (request.GET.get('__report_csv', None) and 'csv') or (request.GET.get('__report_excel', None) and 'excel')
+        data = submit and request.GET or None
 
         form_filter = self.get_report_form_filter()
         form_display = self.get_report_form_display(data)
@@ -51,7 +52,7 @@ class ReportApi(object):
             report_display_fields = form_display.cleaned_data['__report_display_fields_choices']
             queryset = queryset or self.model.objects.all()
 
-            return form_filter.get_report(request, queryset, report_display_fields)
+            return form_filter.get_report(request, queryset, report_display_fields, submit)
 
         extra_context = extra_context or {}
         context = {'form_filter': form_filter,

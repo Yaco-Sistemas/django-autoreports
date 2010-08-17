@@ -24,7 +24,8 @@
                 {{ form_display.as_p }}
             {% endblock %}
             <div class="submit-row">
-                <input type="submit" name="__report" class="default" value="{% trans "Report" %}"/>
+                <input type="submit" name="__report_csv" class="default" value="{% trans "Report to CSV" %}"/>
+                <input type="submit" name="__report_excel" class="default" value="{% trans "Report to Excel" %}"/>
             </div>
         </form>
     </div>
