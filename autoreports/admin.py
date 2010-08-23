@@ -35,9 +35,12 @@ class ReportAdmin(ReportApi):
         info = self.model._meta.app_label, self.model._meta.module_name
 
         urlpatterns = patterns('',
-            url(r'^report/$',
-                wrap(self.report),
-                name='%s_%s_report' % info),
+            url(r'^report/advance/$',
+                wrap(self.report_advance),
+                name='%s_%s_report_advance' % info),
+            url(r'^report/quick/',
+                wrap(self.report_quick),
+                name='%s_%s_report_quick' % info),
         ) + urlpatterns
         return urlpatterns
 
@@ -52,8 +55,12 @@ class ReportAdmin(ReportApi):
     def report_quick(self, request):
         fields = list(getattr(self, 'list_display', ('__unicode__', )))
         try:
-            cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
-                self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self)
+            try:
+                cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
+                    self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self)
+            except TypeError:
+                cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
+                    self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_editable, self)
             headers = list(result_headers(cl))
             for i, header in enumerate(headers):
                 if not header.get('url', None):
