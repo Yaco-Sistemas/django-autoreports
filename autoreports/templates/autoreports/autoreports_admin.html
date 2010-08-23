@@ -1,12 +1,12 @@
 {% load i18n autoreports_tags %}
 {% if app_label and module_name and module and class_name %}
+    {% is_son_of_report_admin as has_reports %} 
+    {% if has_reports %}
     <li>
         <a href="./report/quick/{{ query_string }}">
             {% trans "Quick Report" %}
         </a>
     </li>
-    {% is_son_of_report_admin as has_advanced_report %} 
-    {% if has_advanced_report %}
     <li>
         <a href="./report/advance/">
             {% trans "Advanced Report" %}

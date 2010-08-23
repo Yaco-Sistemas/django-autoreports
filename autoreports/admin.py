@@ -66,12 +66,18 @@ class ReportAdmin(ReportApi):
         queryset = self.queryset(request)
 
         try:
-            cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
-                self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self)
+            try:
+                cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
+                    self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self)
+            except TypeError:
+                cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
+                    self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_editable, self)
             headers = list(result_headers(cl))
+            j = 0
             for i, header in enumerate(headers):
-                if not header.get('url', None):
-                    del fields[i]
+                if not header.get('url', None) and not getattr(self.model, fields[i-j], None):
+                    del fields[i-j]
+                    j = j + 1
         except IncorrectLookupParameters:
             pass
 
