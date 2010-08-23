@@ -60,10 +60,10 @@ class ReportAdmin(ReportApi):
                     del fields[i]
         except IncorrectLookupParameters:
             pass
-
+        filters = Q()
         ordering = self.ordering
         if request.GET.get('q', None):
-            filters = set_filters_search_fields(self, request, Q(), self.model)
+            filters = set_filters_search_fields(self, request, filters, self.model)
         if request.GET.get('o', None):
             ordering = list(fields)[int(request.GET.get('o', None))]
             if request.GET.get('ot', None) and request.GET.get('ot') == 'desc':
@@ -71,6 +71,6 @@ class ReportAdmin(ReportApi):
             ordering = (ordering, )
         queryset = self.queryset(request)
         return reports_view(request, self.model._meta.app_label, self.model._meta.module_name,
-                            fields=fields, list_headers=None, ordering=ordering, filters=Q(),
+                            fields=fields, list_headers=None, ordering=ordering, filters=filters,
                             model_admin=self, queryset=queryset,
                             report_to='csv')
