@@ -21,7 +21,8 @@ from autoreports.utils import add_domain
 from autoreports.csv_to_excel import  convert_to_excel
 
 CHANGE_VALUE = {'get_absolute_url': add_domain}
-EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox')
+EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox',
+                  'q', 'o', 'ot')
 EXTENSION_FILE = {'csv': 'csv',
                   'excel': 'xls'}
 
@@ -69,6 +70,9 @@ def reports_view(request, app_name, model_name, fields=None,
     qsm = QueryStringManager(request)
     object_list = queryset and queryset.filter(filters) or class_model.objects.filter(filters)
     filters = qsm.get_filters()
+    for field in EXCLUDE_FIELDS:
+        if field in filters:
+            del filters[field]
     filters_clean = {}
 
     def convert_filter_datetime(key, endswith, filters, filters_clean):
@@ -101,7 +105,7 @@ def reports_view(request, app_name, model_name, fields=None,
 
     object_list = object_list.filter(**filters_clean)
     if ordering:
-        object_list = object_list.order_by(ordering)
+        object_list = object_list.order_by(*ordering)
 
     response = csv_head(request, name, list_headers)
     csv_body(response, class_model, object_list, list_fields)
@@ -131,7 +135,6 @@ def set_filters_search_fields(model_admin, request, filters, class_model):
         if (field_name, class_model) and is_translate_field(field_name, class_model):
             field_name = '%s_%s' %(field_name, lang)
         filters = filters | Q(**{'%s__icontains' % field_name: query})
-    del request.GET['q']
     return filters
 
 

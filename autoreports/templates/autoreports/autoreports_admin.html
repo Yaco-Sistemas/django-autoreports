@@ -1,14 +1,14 @@
 {% load i18n autoreports_tags %}
 {% if app_label and module_name and module and class_name %}
     <li>
-        <a href="{% url model_admin_reports_view app_label module_name module class_name %}{{ query_string }}">
+        <a href="./report/quick/{{ query_string }}">
             {% trans "Quick Report" %}
         </a>
     </li>
     {% is_son_of_report_admin as has_advanced_report %} 
     {% if has_advanced_report %}
     <li>
-        <a href="./report/">
+        <a href="./report/advance/">
             {% trans "Advanced Report" %}
         </a>
     </li>
