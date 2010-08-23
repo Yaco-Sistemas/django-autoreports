@@ -1,0 +1,8 @@
+ul li {
+    list-style-type: none;
+}
+
+form.report ul li label {
+    float: none;
+    width: auto;
+}
