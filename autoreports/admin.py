@@ -35,12 +35,9 @@ class ReportAdmin(ReportApi):
         info = self.model._meta.app_label, self.model._meta.module_name
 
         urlpatterns = patterns('',
-            url(r'^report/advance/$',
-                wrap(self.report_advance),
-                name='%s_%s_report_advance' % info),
-            url(r'^report/quick/',
-                wrap(self.report_quick),
-                name='%s_%s_report_quick' % info),
+            url(r'^report/$',
+                wrap(self.report),
+                name='%s_%s_report' % info),
         ) + urlpatterns
         return urlpatterns
 
@@ -54,19 +51,6 @@ class ReportAdmin(ReportApi):
 
     def report_quick(self, request):
         fields = list(getattr(self, 'list_display', ('__unicode__', )))
-        try:
-            try:
-                cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
-                    self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self)
-            except TypeError:
-                cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
-                    self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self.list_editable, self)
-            headers = list(result_headers(cl))
-            for i, header in enumerate(headers):
-                if not header.get('url', None):
-                    del fields[i]
-        except IncorrectLookupParameters:
-            pass
         filters = Q()
         ordering = self.ordering
         if request.GET.get('q', None):
@@ -77,6 +61,17 @@ class ReportAdmin(ReportApi):
                 ordering = '-%s' % ordering
             ordering = (ordering, )
         queryset = self.queryset(request)
+
+        try:
+            cl = ChangeList(request, self.model, self.list_display, self.list_display_links, self.list_filter,
+                self.date_hierarchy, self.search_fields, self.list_select_related, self.list_per_page, self)
+            headers = list(result_headers(cl))
+            for i, header in enumerate(headers):
+                if not header.get('url', None):
+                    del fields[i]
+        except IncorrectLookupParameters:
+            pass
+
         return reports_view(request, self.model._meta.app_label, self.model._meta.module_name,
                             fields=fields, list_headers=None, ordering=ordering, filters=filters,
                             model_admin=self, queryset=queryset,
