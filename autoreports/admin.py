@@ -35,9 +35,12 @@ class ReportAdmin(ReportApi):
         info = self.model._meta.app_label, self.model._meta.module_name
 
         urlpatterns = patterns('',
-            url(r'^report/$',
-                wrap(self.report),
-                name='%s_%s_report' % info),
+                url(r'^report/advance/$',
+                      wrap(self.report_advance),
+                      name='%s_%s_report_advance' % info),
+                url(r'^report/quick/',
+                      wrap(self.report_quick),
+                      name='%s_%s_report_quick' % info),
         ) + urlpatterns
         return urlpatterns
 
