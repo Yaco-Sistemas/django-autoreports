@@ -5,6 +5,8 @@ from autoreports.api import ReportApi
 
 class ReportAdmin(ReportApi):
 
+    is_admin = True
+
     def __call__(self, request, url):
         if url and url.endswith('report'):
             url = url[:url.find('/report')]

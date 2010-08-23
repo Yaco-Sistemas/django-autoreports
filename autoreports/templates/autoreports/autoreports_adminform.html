@@ -2,8 +2,12 @@
 {% load i18n %}
 
 {% block extrahead %}
+    {% url admin:jsi18n as jsi18nurl %}
+    <script type="text/javascript" src="{{ jsi18nurl|default:"../../../jsi18n/" }}"></script>
+    <script type="text/javascript" src="{{ ADMIN_MEDIA_PREFIX }}js/core.js"></script>
     {{ block.super }}
-    <link href="/media_admin/css/forms.css" type="text/css" rel="stylesheet">
+    <link href="{{ ADMIN_MEDIA_PREFIX }}css/forms.css" type="text/css" rel="stylesheet">
+    <link href="{{ MEDIA_URL }}autoreports/admin_autoreports.css" type="text/css" rel="stylesheet">
 {% endblock %}
 
 

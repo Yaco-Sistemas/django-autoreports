@@ -1,5 +1,6 @@
 from django import forms
 
+from django.contrib.admin.widgets import AdminSplitDateTime, AdminDateWidget
 from django.template.loader import render_to_string
 
 from django.utils.datastructures import SortedDict
@@ -30,9 +31,10 @@ class BaseReportForm(forms.ModelForm):
 
 class ReportForm(BaseReportForm):
 
-    def __init__(self, fields, *args, **kwargs):
+    def __init__(self, fields, is_admin=False, *args, **kwargs):
         super(ReportForm, self).__init__(*args, **kwargs)
         model = self._meta.model
+        self.is_admin = is_admin
         translatable_fields = self.get_translatable_fields(model)
         translatable_fields_lang = ['%s_%s' %(field, get_language()) for field in translatable_fields]
 
@@ -59,18 +61,28 @@ class ReportForm(BaseReportForm):
 
     def simply_field(self, model, field_name, field, fields_real, translatable_fields_lang):
         field_real = None
-        if field in self.fields: # fields normales
+        if model == self._meta.model:
+            fields = self.fields
+        else:
+            fields = modelform_factory(model).base_fields
+        if field in fields: # fields normales
             field_real = self.get_field(field, self.fields, model)
             if getattr(model, field, None): # m2m or fk
                 self.set_field('%s__id__in' % field_name, field_real, fields_real)
             else:
                 if isinstance(field_real, forms.DateField) or isinstance(field_real, forms.DateTimeField):
                     label = field_real.label
-                    field_real.label = "%s >=" % label
+                    field_real.label = u"%s >=" % label
+                    if self.is_admin:
+                        if isinstance(field_real, forms.DateTimeField):
+                            field_real.widget = AdminSplitDateTime()
+                        else:
+                            field_real.widget = AdminDateWidget()
+                        field_real.show_hidden_initial = False
                     self.set_field('%s__gte' % field_name, field_real, fields_real)
                     from copy import deepcopy
                     field_real = deepcopy(field_real)
-                    field_real.label = "%s <=" % label
+                    field_real.label = u"%s <=" % label
                     self.set_field('%s__lte' % field_name, field_real, fields_real)
                 elif isinstance(field_real, forms.BooleanField) or isinstance(field_real, forms.BooleanField):
                     field_real.widget = forms.RadioSelect(choices=((1, _('Yes')),
@@ -105,17 +117,33 @@ class ReportForm(BaseReportForm):
             translatable_fields = self.get_translatable_fields(model_next)
             translatable_fields_lang = ['%s_%s' %(field, get_language()) for field in translatable_fields]
             field_real = self.simply_field(model_next, field_name, field, fields_real, translatable_fields)
+            last_relation = True
+        else:
+            model_next = model
+            field_real = None
+            field = field_split[0]
+            last_relation = False
 
-            if not field_real:
-                if field: # reverse relation
-                    m2mrelated = getattr(model_next, field, None)
-                    if m2mrelated and getattr(m2mrelated, 'related', None) and getattr(m2mrelated.related, 'model', None):
-                        model_queryset = m2mrelated.related.model
+        if not field_real:
+            if field: # reverse relation
+                m2mrelated = getattr(model_next, field, None)
+                if m2mrelated and getattr(m2mrelated, 'related', None) and getattr(m2mrelated.related, 'model', None):
+                    model_queryset = m2mrelated.related.model
+                    field = '__'.join(field_split[1:])
+                    if last_relation or not field:
                         f = forms.ModelChoiceField(queryset=model_queryset.objects.all())
                         f.label = model_queryset._meta.verbose_name
                         self.set_field('%s__id__in' % field_name, f, fields_real)
-                else:
-                    self.set_field('%s__id__in' % field_name, relation.field.formfield(), fields_real)
+                    else:
+                        if '__' in field:
+                            self.related_field(field_name, '__'.join(field_split[1:]), model_queryset, fields_real)
+                            return
+                        translatable_fields = self.get_translatable_fields(model_queryset)
+                        translatable_fields_lang = ['%s_%s' %(field, get_language()) for field in translatable_fields]
+                        field_real = self.simply_field(model_queryset, field_name, field, fields_real, translatable_fields)
+
+            else:
+                self.set_field('%s__id__in' % field_name, relation.field.formfield(), fields_real)
 
     def get_translatable_fields(self, cls):
         classes = cls._meta.get_parent_list()

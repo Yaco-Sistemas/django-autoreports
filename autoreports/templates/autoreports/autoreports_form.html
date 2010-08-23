@@ -5,6 +5,12 @@
     {% trans "Advanced Report" %} {{ block.super }}
 {% endblock %}
 
+{% block extrahead %}
+    {{ block.super }}
+    {{ form_filter.media }}
+    {{ form_display.media }}
+{% endblock %}
+
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">

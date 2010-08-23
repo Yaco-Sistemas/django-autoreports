@@ -16,6 +16,7 @@ class ReportApi(object):
     report_display_fields = ()
     category = 'no_category'
     category_verbosename = None
+    is_admin = False
 
     EXCLUDE_FIELDS = EXCLUDE_FIELDS
 
@@ -30,14 +31,14 @@ class ReportApi(object):
     def get_report_form_filter(self):
         form_filter_class = modelform_factory(model=self.model,
                           form=self.report_form_filter)
-        form_filter = form_filter_class(fields=self.get_report_filter_fields())
+        form_filter = form_filter_class(fields=self.get_report_filter_fields(), is_admin=self.is_admin)
 
         return form_filter
 
     def get_report_form_display(self, data):
         form_display_class = modelform_factory(model=self.model,
                           form=self.report_form_display)
-        form_display = form_display_class(data=data, fields=self.get_report_display_fields())
+        form_display = form_display_class(data=data, fields=self.get_report_display_fields(), is_admin=self.is_admin)
 
         return form_display
 
@@ -47,18 +48,17 @@ class ReportApi(object):
 
         form_filter = self.get_report_form_filter()
         form_display = self.get_report_form_display(data)
-
         if data and form_display.is_valid():
             report_display_fields = form_display.cleaned_data['__report_display_fields_choices']
             queryset = queryset or self.model.objects.all()
 
             return form_filter.get_report(request, queryset, report_display_fields, submit)
-
         extra_context = extra_context or {}
         context = {'form_filter': form_filter,
                    'form_display': form_display,
                    'template_base': getattr(settings, 'AUTOREPORTS_BASE_TEMPLATE', 'base.html'),
                    'api': self,
+                    'ADMIN_MEDIA_PREFIX': settings.ADMIN_MEDIA_PREFIX,
                   }
         context.update(extra_context)
         return render_to_response(template_name,
