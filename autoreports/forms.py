@@ -31,6 +31,8 @@ class BaseReportForm(forms.ModelForm):
 
 class ReportForm(BaseReportForm):
 
+    use_initial = True
+
     def __init__(self, fields, is_admin=False, *args, **kwargs):
         super(ReportForm, self).__init__(*args, **kwargs)
         model = self._meta.model
@@ -57,6 +59,8 @@ class ReportForm(BaseReportForm):
         choices = getattr(field, 'choices', None)
         if choices and isinstance(choices, list):
             field.choices = [('', '---------'), ] + choices
+        if not self.use_initial:
+            field.initial = None
         fields_real[field_name] = field
 
     def simply_field(self, model, field_name, field, fields_real, translatable_fields_lang):
