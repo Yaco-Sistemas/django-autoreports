@@ -17,14 +17,12 @@ from django.utils.translation import get_language
 from decimal import Decimal
 from cmsutils.adminfilters import QueryStringManager
 
-from autoreports.utils import add_domain
+from autoreports.utils import add_domain, get_available_formats
 from autoreports.csv_to_excel import  convert_to_excel
 
 CHANGE_VALUE = {'get_absolute_url': add_domain}
 EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox',
                   'q', 'o', 'ot')
-EXTENSION_FILE = {'csv': 'csv',
-                  'excel': 'xls'}
 
 
 def reports_list(request, category_key=None):
@@ -51,6 +49,7 @@ def reports_view(request, app_name, model_name, fields=None,
 
     class_model = models.get_model(app_name, model_name)
     list_fields = fields
+    formats = get_available_formats()
 
     if not list_fields:
         model_admin = model_admin or site._registry.get(class_model, None)
@@ -65,7 +64,7 @@ def reports_view(request, app_name, model_name, fields=None,
     list_headers = list_headers
     if not list_headers:
         list_headers = translate_fields(list_fields, class_model)
-    name = "%s-%s.%s" %(app_name, model_name, EXTENSION_FILE[report_to])
+    name = "%s-%s.%s" %(app_name, model_name, formats[report_to]['file_extension'])
 
     qsm = QueryStringManager(request)
     object_list = queryset and queryset.filter(filters) or class_model.objects.filter(filters)

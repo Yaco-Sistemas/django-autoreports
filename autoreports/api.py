@@ -5,6 +5,7 @@ from django.template import RequestContext
 
 from autoreports.forms import ReportFilterForm, ReportDisplayForm
 from autoreports.models import modelform_factory
+from autoreports.utils import get_available_formats
 from autoreports.views import EXCLUDE_FIELDS
 
 
@@ -57,8 +58,9 @@ class ReportApi(object):
         context = {'form_filter': form_filter,
                    'form_display': form_display,
                    'template_base': getattr(settings, 'AUTOREPORTS_BASE_TEMPLATE', 'base.html'),
+                   'export_formats': get_available_formats(),
                    'api': self,
-                    'ADMIN_MEDIA_PREFIX': settings.ADMIN_MEDIA_PREFIX,
+                   'ADMIN_MEDIA_PREFIX': settings.ADMIN_MEDIA_PREFIX,
                   }
         context.update(extra_context)
         return render_to_response(template_name,

@@ -30,8 +30,9 @@
                 {{ form_display.as_p }}
             {% endblock %}
             <div class="submit-row">
-                <input type="submit" name="__report_csv" class="default" value="{% trans "Report to CSV" %}"/>
-                <input type="submit" name="__report_excel" class="default" value="{% trans "Report to Excel" %}"/>
+            {% for format, format_data in export_formats.items %}
+                <input type="submit" name="__report_{{ format }}" class="default" value="{{ format_data.label }}"/>
+            {% endfor %}
             </div>
         </form>
     </div>

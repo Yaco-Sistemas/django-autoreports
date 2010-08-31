@@ -1,10 +1,18 @@
 # Based on http://sujitpal.blogspot.com/2007/02/python-script-to-convert-csv-files-to.html
 import csv
-from pyExcelerator import Workbook
+
+
+try:
+    import pyExcelerator
+except ImportError:
+    HAS_PYEXCELERATOR = False
+else:
+    HAS_PYEXCELERATOR = True
 
 
 def openExcelSheet():
     """ Opens a reference to an Excel WorkBook and Worksheet objects """
+    from pyExcelerator import Workbook
     workbook = Workbook()
     worksheet = workbook.add_sheet("Sheet 1")
     return workbook, worksheet
