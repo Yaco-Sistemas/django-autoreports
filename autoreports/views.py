@@ -87,7 +87,7 @@ def reports_view(request, app_name, model_name, fields=None,
             filters_clean[key_new] = value_new
 
     for key, value in filters.items():
-        if value == [u'']:
+        if value in [[u''], u'']:
             continue
         elif value == '' and (key.endswith('__lte') or key.endswith('__gte')):
             continue
