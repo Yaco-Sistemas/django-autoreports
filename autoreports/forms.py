@@ -93,6 +93,8 @@ class ReportForm(BaseReportForm):
                                                                    (0, _('No')),
                                                         ))
                     self.set_field(field_name, field_real, fields_real)
+                elif isinstance(field_real, forms.IntegerField) or isinstance(field_real, forms.FloatField):
+                    self.set_field(field_name, field_real, fields_real)
                 else:
                     self.set_field('%s__icontains' % field_name, field_real, fields_real)
         else:
