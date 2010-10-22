@@ -11,13 +11,14 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.utils.translation import get_language
 
 from decimal import Decimal
 from cmsutils.adminfilters import QueryStringManager
 
-from autoreports.utils import add_domain, get_available_formats
+from autoreports.utils import add_domain, get_available_formats, get_fields_from_model
 from autoreports.csv_to_excel import  convert_to_excel
 
 CHANGE_VALUE = {'get_absolute_url': add_domain}
@@ -39,6 +40,23 @@ def reports_api(request, registry_key):
     from autoreports.registry import report_registry
     api = report_registry.get_api_class(registry_key)
     return api.report(request)
+
+
+def reports_ajax_fields(request):
+    ct = ContentType.objects.get(model=request.GET.get('module_name'),
+                                 app_label=request.GET.get('app_label'))
+    prefix = request.GET.get('prefix')
+    model = ct.model_class()
+    model_fields, objs_related, fields_related, funcs = get_fields_from_model(model, prefix)
+
+    context = {'prefix': prefix,
+               'model_fields': model_fields,
+               'fields_related': fields_related,
+               'objs_related': objs_related,
+               'funcs': funcs,
+               'level_margin': (prefix.count('__') + 1) * 25, }
+    html = render_to_string('autoreports/inc.render_model.html', context)
+    return HttpResponse(html)
 
 
 def reports_view(request, app_name, model_name, fields=None,

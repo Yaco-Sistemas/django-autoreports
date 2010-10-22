@@ -16,7 +16,12 @@
      <a href="../../../../">{% trans "Home" %}</a> &rsaquo;
      <a href="../../../">{% trans opts.app_label.title %}</a> &rsaquo;
      <a href="../../">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
-     {% trans "Report Form" %}
+     {% if report %}
+        <a href="../">{% trans "Reports" %}</a> &rsaquo;
+        {{ report }}
+     {% else %}
+        {% trans "Report Form" %}
+     {% endif %}
 </div>
 {% endif %}{% endblock %}
 

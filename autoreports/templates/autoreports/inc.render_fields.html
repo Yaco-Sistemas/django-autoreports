@@ -1,0 +1,20 @@
+{% load i18n %}
+
+<table class="fields">
+{% for field in fields %}
+    <tr class="{{ field.type }} fields">
+        <td><label for="id_{{ field.name }}">
+            {% if field.app_label and field.module_name %}
+                <a href="{{ field.app_label }}/{{field.module_name}}">
+            {% endif %}
+                    {{ field.verbose_name }}
+            {% if field.app_label and field.module_name %}
+                </a>
+            {% endif %}
+        </label></td>
+        <td>{% with "filter" as prefix %}{% include "autoreports/inc.render_choices.html" %}{% endwith %}</td>
+        <td><input type="checkbox" id="id_display_{{ field.name }}" name="display_{{ field.name }}"> {% trans "Select to display" %}</td>
+        <td>{{ field.field.help_text|safe }}</td>
+    </tr>
+{% endfor %}
+</table>

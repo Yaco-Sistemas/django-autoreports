@@ -1,5 +1,8 @@
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from django.forms.models import ModelFormMetaclass, get_declared_fields, media_property, ModelFormOptions, ModelForm
 from django.utils.datastructures import SortedDict
+from django.utils.translation import ugettext_lazy as _
 
 
 def modelform_factory(model, form=ModelForm, fields=None, exclude=None,
@@ -96,3 +99,30 @@ class ReportModelFormMetaclass(ModelFormMetaclass):
         new_class.declared_fields = declared_fields
         new_class.base_fields = fields
         return new_class
+
+
+class Report(models.Model):
+
+    name = models.CharField(_('Name'), max_length=200)
+    report_filter_fields = models.TextField(_('Report filter fields'), null=True, blank=True)
+    report_display_fields = models.TextField(_('Report display fields'), null=True, blank=True)
+    content_type = models.ForeignKey(ContentType, verbose_name=_('Content type'))
+
+    @property
+    def report_filter_fields_tuple(self):
+        if self.report_filter_fields:
+            return tuple(self.report_filter_fields.split(', '))
+        return tuple()
+
+    @property
+    def report_display_fields_tuple(self):
+        if self.report_display_fields:
+            return tuple(self.report_display_fields.split(', '))
+        return tuple()
+
+    class Meta:
+        verbose_name = _('report')
+        verbose_name_plural = _('reports')
+
+    def __unicode__(self):
+        return self.name

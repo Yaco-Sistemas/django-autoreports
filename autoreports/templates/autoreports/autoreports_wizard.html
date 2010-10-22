@@ -1,0 +1,94 @@
+{% extends template_base %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "Wizard Report" %} {{ block.super }}
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript">
+        (function($){
+            $(document).ready(function () {
+                $("tr.fields").fadeOut();
+
+                function title_click(){
+                    var id = $(this).parent().parent().parent().attr("id");
+                    if (!$("tr." + id).hasClass("visibility")) {
+                        $("tr." + id).fadeIn();
+                        $("tr." + id).addClass("visibility");
+                    }
+                    else {
+                        $("tr." + id).fadeOut();
+                        $("tr." + id).removeClass("visibility");
+                    }
+                    return false;
+                }
+
+                function field_click(){
+                    var link = $(this);
+                    var tr_link = link.parent().parent().parent();
+                    var model = link.attr("href").split("/");
+                    var prefix = link.parent().attr("for").replace('id_', '');
+                    var url = "{% url reports_ajax_fields %}" + "?app_label=" + model[0] + "&module_name=" + model[1] + "&prefix=" + prefix;
+                    if (tr_link.next().find("table").length == 0) {
+                        $.ajax({
+                            url: url,
+                            type: "GET",
+                            async: true,
+                            dataType: 'text/html',
+                            success: function(response){
+                                tr_link.after('<tr class="visibility"><td colspan="4">' + response + '</tr></tr>');
+                                tr_link.next().find("table tr.fields").fadeOut();
+                                tr_link.next().find("table tr.title h3 a").click(title_click);
+                                tr_link.next().find("table tr.fields a").click(field_click);
+                            }
+                        });
+                    }
+                    else {
+                        if (tr_link.next().hasClass("visibility")){
+                            tr_link.next().fadeOut();
+                            tr_link.next().removeClass("visibility");
+                        }
+                        else {
+                            tr_link.next().fadeIn();
+                            tr_link.next().addClass("visibility");
+                        }
+                    }
+                    return false;
+                }
+                $("tr.title h3 a").click(title_click);
+                $("tr.fields a").click(field_click);
+
+            });
+        })(jQuery);
+    </script>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../">{% trans "Reports" %}</a> &rsaquo;
+     {% trans "Wizard Report" %}
+</div>
+{% endblock %}
+
+{% block content %}
+    <h1>{% trans "Wizard Form" %}</h1>
+    <div id="content-main">
+        <form action="." method="post" class="report">
+            {% block contentform %}
+                {% block contentformname %}
+                    {{ form_name.as_p }}
+                {% endblock %}
+                {% block contentformmodel %}
+                    {% include "autoreports/inc.render_model.html" %}
+                {% endblock %}
+            {% endblock %}
+            <div class="submit-row">
+                <input type="submit" name="__report_wizard" class="default" value="{% trans "Create a report" %}"/>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -7,7 +7,8 @@ from django.utils.datastructures import SortedDict
 from django.utils.translation import get_language
 from django.utils.translation import ugettext_lazy as _
 
-from autoreports.models import ReportModelFormMetaclass, modelform_factory
+from autoreports.models import ReportModelFormMetaclass, modelform_factory, Report
+from autoreports.utils import CHOICES_ALL
 from autoreports.views import reports_view
 
 
@@ -33,10 +34,11 @@ class ReportForm(BaseReportForm):
 
     use_initial = True
 
-    def __init__(self, fields, is_admin=False, *args, **kwargs):
+    def __init__(self, fields, is_admin=False, report=None, *args, **kwargs):
         super(ReportForm, self).__init__(*args, **kwargs)
         model = self._meta.model
         self.is_admin = is_admin
+        self.report = report
         translatable_fields = self.get_translatable_fields(model)
         translatable_fields_lang = ['%s_%s' %(field, get_language()) for field in translatable_fields]
 
@@ -46,7 +48,8 @@ class ReportForm(BaseReportForm):
         for field in fields:
             field_real = self.simply_field(model, field, field, fields_real, translatable_fields_lang)
             if not field_real:
-                self.related_field(field, field, model, fields_real)
+                if not self.is_callable(model, field, field):
+                    self.related_field(field, field, model, fields_real)
         self.fields_real = fields_real
 
     def get_field(self, field, fields, model):
@@ -55,13 +58,25 @@ class ReportForm(BaseReportForm):
         form = modelform_factory(model=model, form=BaseReportForm)()
         return form.base_fields.get(field, None)
 
-    def set_field(self, field_name, field, fields_real):
+    def set_field(self, field_name, subfix, field, fields_real):
         choices = getattr(field, 'choices', None)
         if choices and isinstance(choices, list):
             field.choices = [('', '---------'), ] + choices
         if not self.use_initial:
             field.initial = None
+        if not self.report and subfix:
+            field_name = '%s%s' %(field_name, subfix)
+        field.help_text = field_name
         fields_real[field_name] = field
+
+    def remove_suffix(self, field):
+        suffix = ''
+        field_withput_suffix = field
+        for choice, choice_name in CHOICES_ALL:
+            if field.endswith('__%s' % choice):
+                suffix = choice
+                field_withput_suffix = field.replace('__%s' % choice, '')
+        return (field_withput_suffix, suffix)
 
     def simply_field(self, model, field_name, field, fields_real, translatable_fields_lang):
         field_real = None
@@ -69,54 +84,63 @@ class ReportForm(BaseReportForm):
             fields = self.fields
         else:
             fields = modelform_factory(model).base_fields
+        field, suffix = self.remove_suffix(field)
+
         if field in fields: # fields normales
             field_real = self.get_field(field, self.fields, model)
             if getattr(model, field, None): # m2m or fk
-                self.set_field('%s__id__in' % field_name, field_real, fields_real)
+                self.set_field(field_name, '__id__in', field_real, fields_real)
             else:
                 if isinstance(field_real, forms.DateField) or isinstance(field_real, forms.DateTimeField):
-                    label = field_real.label
-                    field_real.label = u"%s >=" % label
+                    if not self.report:
+                        label = field_real.label
+                        field_real.label = u"%s >=" % label
                     if self.is_admin:
                         if isinstance(field_real, forms.DateTimeField):
                             field_real.widget = AdminSplitDateTime()
                         else:
                             field_real.widget = AdminDateWidget()
                         field_real.show_hidden_initial = False
-                    self.set_field('%s__gte' % field_name, field_real, fields_real)
-                    from copy import deepcopy
-                    field_real = deepcopy(field_real)
-                    field_real.label = u"%s <=" % label
-                    self.set_field('%s__lte' % field_name, field_real, fields_real)
+                    self.set_field(field_name, '__gte', field_real, fields_real)
+                    if not self.report:
+                        from copy import deepcopy
+                        field_real = deepcopy(field_real)
+                        field_real.label = u"%s <=" % label
+                        self.set_field(field_name, '__lte', field_real, fields_real)
                 elif isinstance(field_real, forms.BooleanField) or isinstance(field_real, forms.BooleanField):
                     field_real.widget = forms.RadioSelect(choices=((1, _('Yes')),
                                                                    (0, _('No')),
                                                         ))
-                    self.set_field(field_name, field_real, fields_real)
+                    self.set_field(field_name, '', field_real, fields_real)
                 elif isinstance(field_real, forms.IntegerField) or isinstance(field_real, forms.FloatField):
-                    self.set_field(field_name, field_real, fields_real)
+                    self.set_field(field_name, '', field_real, fields_real)
                 else:
-                    self.set_field('%s__icontains' % field_name, field_real, fields_real)
+                    self.set_field(field_name, '__icontains', field_real, fields_real)
         else:
             field_trans = '%s_%s' % (field, get_language())
             field_name_trans = '%s_%s' % (field, get_language())
             if field_trans in translatable_fields_lang: # transmeta fields
                 field_real = self.get_field(field_trans, self.fields, model)
-                self.set_field('%s__icontains' % field_name_trans, field_real, fields_real)
+                self.set_field(field_name_trans, '__icontains', field_real, fields_real)
         return field_real
+
+    def is_callable(self, model, field, field_name):
+        if callable(getattr(model, field, None)) or callable(getattr(model, '__%s' % field, None)):
+            field_callable = getattr(model, field, None) or getattr(model, '__%s' % field, None)
+            self.callables_choices.append((field_name, unicode(getattr(field_callable, 'short_description', field_name))))
+            return True
+        return False
 
     def related_field(self, field_name, field, model, fields_real):
         field_split = field.split('__')
         field = '__'.join(field_split[1:])
-        if callable(getattr(model, field, None)) or callable(getattr(model, '__%s' % field, None)):
-            field_callable = getattr(model, field, None) or getattr(model, '__%s' % field, None)
-            self.callables_choices.append((field_name, unicode(getattr(field_callable, 'short_description', field_name))))
+        if self.is_callable(model, field, field_name):
             return
         relation = getattr(model, field_split[0])
         relation_field = getattr(relation, 'field', None)
         if relation_field:
             model_next = relation_field.formfield().queryset.model
-            if '__' in field:
+            if '__' in self.remove_suffix(field)[0]:
                 self.related_field(field_name, field, model_next, fields_real)
                 return
 
@@ -139,7 +163,7 @@ class ReportForm(BaseReportForm):
                     if last_relation or not field:
                         f = forms.ModelChoiceField(queryset=model_queryset.objects.all())
                         f.label = model_queryset._meta.verbose_name
-                        self.set_field('%s__id__in' % field_name, f, fields_real)
+                        self.set_field(field_name, '__id__in', f, fields_real)
                     else:
                         if '__' in field:
                             self.related_field(field_name, '__'.join(field_split[1:]), model_queryset, fields_real)
@@ -149,7 +173,7 @@ class ReportForm(BaseReportForm):
                         field_real = self.simply_field(model_queryset, field_name, field, fields_real, translatable_fields)
 
             else:
-                self.set_field('%s__id__in' % field_name, relation.field.formfield(), fields_real)
+                self.set_field(field_name, '__id__in', relation.field.formfield(), fields_real)
 
     def get_translatable_fields(self, cls):
         classes = cls._meta.get_parent_list()
@@ -204,3 +228,18 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
                  list_headers=list_headers,
                  queryset=queryset,
                  report_to=report_to)
+
+
+class ReportNameForm(BaseReportForm, FormAdminDjango):
+
+    def __init__(self, *args, **kwargs):
+        super(ReportNameForm, self).__init__(*args, **kwargs)
+        self.fields['name'].required = False
+
+    class Meta:
+        model = Report
+        fields = ('name', )
+
+
+class ReportNameAdminForm(ReportNameForm, FormAdminDjango):
+    pass
