@@ -165,7 +165,7 @@ class ReportForm(BaseReportForm):
                         f.label = model_queryset._meta.verbose_name
                         self.set_field(field_name, '__id__in', f, fields_real)
                     else:
-                        if '__' in field:
+                        if '__' in self.remove_suffix(field)[0]:
                             self.related_field(field_name, '__'.join(field_split[1:]), model_queryset, fields_real)
                             return
                         translatable_fields = self.get_translatable_fields(model_queryset)
