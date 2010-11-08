@@ -92,8 +92,13 @@ class ReportAdmin(ReportApi):
             search_fields = tuple()
             list_select_related = False
             list_per_page = 100
-            cl = ChangeList(request, Report, list_display, list_display_links, list_filter,
-                            date_hierarchy, search_fields, list_select_related, list_per_page, admin.site._registry[model])
+            try:
+                cl = ChangeList(request, Report, list_display, list_display_links, list_filter,
+                    date_hierarchy, search_fields, list_select_related, list_per_page, admin.site._registry[model])
+            except TypeError:
+                cl = ChangeList(request, Report, list_display, list_display_links, list_filter,
+                    date_hierarchy, search_fields, list_select_related, list_per_page, (), admin.site._registry[model])
+                cl.formset = None
         except IncorrectLookupParameters:
             # Wacky lookup parameters were given, so redirect to the main
             # changelist page, without parameters, and pass an 'invalid=1'
@@ -117,7 +122,7 @@ class ReportAdmin(ReportApi):
             'opts': self.opts,
         }
         context.update(extra_context or {})
-        return render_to_response(self.change_list_template or [
+        return render_to_response(getattr(self, 'change_report_list_template', None) or [
             'autoreports/%s/%s/report_adminlist.html' % (app_label, opts.object_name.lower()),
             'autoreports/%s/report_adminlist.html' % app_label,
             'autoreports/report_adminlist.html',

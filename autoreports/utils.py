@@ -114,7 +114,7 @@ def get_fields_from_model(model, prefix=None):
             model_fields.append(field_dict)
 
     for func_name in dir(model):
-        if not callable(getattr(model, func_name)):
+        if not callable(getattr(model, func_name, None)):
             continue
         func = getattr(model, func_name)
         if not getattr(func, 'im_func', None):
