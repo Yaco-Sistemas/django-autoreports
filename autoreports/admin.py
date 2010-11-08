@@ -75,7 +75,7 @@ class ReportAdmin(ReportApi):
                 url(r'^report/(?P<report_id>\d+)/$',
                       wrap(self.report_view),
                       name='%s_%s_report_view' % info),
-        ) + urlpatterns
+        )
         return urlpatterns
 
     def report_list(self, request, extra_context=None):

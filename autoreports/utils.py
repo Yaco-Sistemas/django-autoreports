@@ -24,7 +24,8 @@ CHOICES_ALL = (('icontains', ugettext('Contains')),
                ('lte', ugettext('less equal than')),
                ('gt', ugettext('great than')),
                ('gte', ugettext('great equal than')),
-               ('iexact', ugettext('exact')), )
+               ('iexact', ugettext('exact')),
+               ('id__in', ugettext('exact related')), )
 
 
 CHOICES_STR = (('icontains', ugettext('Contains')),
@@ -78,7 +79,7 @@ def get_fields_from_model(model, prefix=None):
             field_type = prefix and '%s__objs_related' % prefix or 'objs_related'
             objs_related.append({'field': field,
                                  'name': field_name_prefix,
-                                 'choices': CHOICES_ALL,
+                                 'choices': CHOICES_RELATED,
                                  'type': field_type,
                                  'verbose_name': field_name,
                                  'app_label': field.model._meta.app_label,

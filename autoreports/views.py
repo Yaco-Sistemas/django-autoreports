@@ -188,10 +188,18 @@ def csv_head(request, filename, columns, delimiter=','):
 
 
 def get_row_and_field_name(row, field_name):
-    if '__' not in field_name or (getattr(row, field_name, None) and callable(getattr(row, field_name))):
+    field_name_reverse = '%s_set' % field_name
+    if '__' not in field_name:
+        if getattr(row, field_name, None):
+            return [(row, field_name)]
+        elif getattr(row, field_name_reverse, None):
+            return [(row, field_name_reverse)]
         return [(row, field_name)]
+    elif getattr(row, field_name, None) and callable(getattr(row, field_name)):
+        return [(row, field_name)]
+
     field_split = field_name.split('__')
-    row = getattr(row, field_split[0])
+    row = getattr(row, field_split[0], None) or getattr(row, '%s_set' % field_split[0], None)
     if getattr(row, 'all', None):
         row = row.all()
     if not row:
@@ -233,6 +241,8 @@ def get_value(row_field_name, class_model, lang):
     for row, field_name in row_field_name:
         if row and hasattr(row, field_name):
             try:
+                if isinstance(row, models.Model):
+                    class_model = row
                 if is_translate_field(field_name, class_model):
                     field_name = '%s_%s' %(field_name, lang)
                 field = class_model._meta.get_field(field_name)
@@ -241,7 +251,7 @@ def get_value(row_field_name, class_model, lang):
             if isinstance(field, models.ForeignKey) and isinstance(getattr(row, field_name, None), int):
                 name_aplication = field.rel.to._meta.app_label
                 model_foreing = field.rel.to._meta.module_name
-                class_model_foreing=models.get_model(name_aplication, model_foreing)
+                class_model_foreing = models.get_model(name_aplication, model_foreing)
                 value = class_model_foreing.objects.get(id=row.id)
             elif getattr(field, 'choices', None):
                 value = getattr(row, field_name)

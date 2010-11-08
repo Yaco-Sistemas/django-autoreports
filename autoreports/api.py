@@ -45,7 +45,6 @@ class ReportApi(object):
     def report(self, request, report=None, queryset=None, template_name='autoreports/autoreports_form.html', extra_context=None):
         submit = (request.GET.get('__report_csv', None) and 'csv') or (request.GET.get('__report_excel', None) and 'excel')
         data = submit and request.GET or None
-
         form_filter = self.get_report_form_filter(report)
         form_display = self.get_report_form_display(data, report)
         if data and form_display.is_valid():
