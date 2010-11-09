@@ -5,10 +5,11 @@
         <th><span>{% trans "Select filter" %}</span></th>
         <th><span>{% trans "Select display" %}</span></th>
         <th><span>{% trans "Help text" %}</span></th>
+        <th><span>{% trans "Advanced Options" %}</span></th>
     </tr>
     {% if model_fields %}
         <tr id="{% if prefix %}{{ prefix }}__{% endif %}model_fields" class="title">
-            <td colspan="4"> <h3><a href="#">{% trans "Model fields"%}</a></h3>
+            <td colspan="5"> <h3><a href="#">{% trans "Model fields"%}</a></h3>
                 {% with model_fields as fields %}
                     {% include "autoreports/inc.render_fields.html" %}
                 {% endwith %}
@@ -18,7 +19,7 @@
     {% endif %}
     {% if fields_related %}
         <tr id="{% if prefix %}{{ prefix }}__{% endif %}fields_related" class="title">
-            <td colspan="4"> <h3><a href="#">{% trans "Related fields"%}</a></h3>
+            <td colspan="5"> <h3><a href="#">{% trans "Related fields"%}</a></h3>
                 {% with fields_related as fields %}
                     {% include "autoreports/inc.render_fields.html" %}
                 {% endwith %}
@@ -27,7 +28,7 @@
     {% endif %}
     {% if objs_related %}
         <tr id="{% if prefix %}{{ prefix }}__{% endif %}objs_related" class="title">
-            <td colspan="4"> <h3><a href="#">{% trans "Reverse fields"%}</a></h3>
+            <td colspan="5"> <h3><a href="#">{% trans "Reverse fields"%}</a></h3>
                 {% with objs_related as fields %}
                     {% include "autoreports/inc.render_fields.html" %}
                 {% endwith %}
@@ -36,7 +37,7 @@
     {% endif %}
     {% if funcs %}
         <tr id="{% if prefix %}{{ prefix }}__{% endif %}func" class="title">
-            <td colspan="4"> <h3><a href="#">{% trans "Functions"%}</a></h3>
+            <td colspan="5"> <h3><a href="#">{% trans "Functions"%}</a></h3>
                 {% with funcs as fields %}
                     {% include "autoreports/inc.render_fields.html" %}
                 {% endwith %}

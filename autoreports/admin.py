@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.utils import simplejson
 from django.utils.translation import ugettext_lazy as _
 
 from autoreports.api import ReportApi
@@ -137,17 +138,25 @@ class ReportAdmin(ReportApi):
         if form_name.is_valid():
             report_filter_fields = []
             report_display_fields = []
-            for check in request.POST:
+            report_advance = {}
+            for check, value in request.POST.items():
                 if check.startswith('display_'):
                     report_display_fields.append(check.replace('display_', ''))
                 elif check.startswith('filter_'):
                     report_filter_fields.append(check.replace('filter_', ''))
+                elif check.startswith('widget_'):
+                    field_name = check.replace('widget_', '')
+                    report_advance[field_name] = {'widget': value}
+                    default_value = request.POST.get(field_name, None)
+                    if default_value:
+                        report_advance[field_name]['default'] = default_value
             name = form_name.cleaned_data.get('name', None) or 'report of %s' % unicode(self.model._meta.verbose_name)
             content_type = ContentType.objects.get_for_model(self.model)
             report = Report.objects.create(name=name,
                                            report_display_fields=', '.join(report_display_fields),
                                            report_filter_fields=', '.join(report_filter_fields),
-                                           content_type=content_type)
+                                           content_type=content_type,
+                                           advanced_options=simplejson.dumps(report_advance))
             return HttpResponseRedirect('../%s' % report.id)
 
         model_fields, objs_related, fields_related, funcs = get_fields_from_model(self.model)
@@ -160,6 +169,8 @@ class ReportAdmin(ReportApi):
                    'template_base': "admin/base_site.html",
                    'level_margin': 0,
                    'form_name': form_name,
+                   'module_name': self.model._meta.module_name,
+                   'app_label': self.model._meta.app_label,
                   }
         return render_to_response(template_name,
                                   context,

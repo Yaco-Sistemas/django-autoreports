@@ -3,12 +3,13 @@ from django import forms
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminDateWidget
 from django.template.loader import render_to_string
 
+from django.utils import simplejson
 from django.utils.datastructures import SortedDict
 from django.utils.translation import get_language
 from django.utils.translation import ugettext_lazy as _
 
 from autoreports.models import ReportModelFormMetaclass, modelform_factory, Report
-from autoreports.utils import CHOICES_ALL
+from autoreports.utils import CHOICES_ALL, change_widget
 from autoreports.views import reports_view
 
 
@@ -39,6 +40,10 @@ class ReportForm(BaseReportForm):
         model = self._meta.model
         self.is_admin = is_admin
         self.report = report
+        if report and getattr(report, 'advanced_options', None):
+            self.advanced_options = simplejson.loads(report.advanced_options)
+        else:
+            self.advanced_options = {}
         self.use_subfix = use_subfix
         fields_real = self.get_real_fields(model, fields)
         self.fields_real = fields_real
@@ -120,7 +125,7 @@ class ReportForm(BaseReportForm):
                 return
 
             translatable_fields = self.get_translatable_fields(model_next)
-            translatable_fields_lang = ['%s_%s' %(field, get_language()) for field in translatable_fields]
+            translatable_fields_lang = ['%s_%s' %(translatable_field, get_language()) for translatable_field in translatable_fields]
             return self.get_real_model_field(model_next, field_name, field, fields_real, translatable_fields)
         else:
             model_next = model
@@ -142,7 +147,7 @@ class ReportForm(BaseReportForm):
                         if '__' in self._remove_suffix(field)[0]:
                             return self.get_real_related_field(field_name, '__'.join(field_split[1:]), model_queryset, fields_real)
                         translatable_fields = self.get_translatable_fields(model_queryset)
-                        translatable_fields_lang = ['%s_%s' %(field, get_language()) for field in translatable_fields]
+                        translatable_fields_lang = ['%s_%s' %(translatable_field, get_language()) for translatable_field in translatable_fields]
                         field_real = self.get_real_model_field(model_queryset, field_name, field, fields_real, translatable_fields)
 
             else:
@@ -171,7 +176,15 @@ class ReportForm(BaseReportForm):
             field_name = '%s%s' %(field_name, subfix)
         field.help_text = field_name
         from copy import deepcopy
-        fields_real[field_name] = deepcopy(field)
+        field_copy = deepcopy(field)
+        advanced_options_field = self.advanced_options.get(field_name, None)
+        if self.advanced_options and advanced_options_field:
+            widget = advanced_options_field.get('widget', None)
+            if widget:
+                change_widget(widget, field_copy)
+            default_val = advanced_options_field.get('default', None)
+            field_copy.initial = default_val
+        fields_real[field_name] = field_copy
         return field
 
     def _remove_suffix(self, field):
@@ -195,6 +208,9 @@ class ReportDisplayForm(ReportForm, FormAdminDjango):
 
     def __init__(self, fields, *args, **kwargs):
         super(ReportDisplayForm, self).__init__(fields, *args, **kwargs)
+        if self.is_admin:
+            self.__unicode__ = self.as_django_admin
+        self.fields = {}
         if self.fields_real:
             choices = [(field_name, unicode(field.label)) for field_name, field in self.fields_real.items()]
             choices.extend(self.callables_choices)
@@ -211,6 +227,8 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
     def __init__(self, fields, *args, **kwargs):
         super(ReportFilterForm, self).__init__(fields, *args, **kwargs)
         self.fields = self.fields_real
+        if self.is_admin:
+            self.__unicode__ = self.as_django_admin
 
     def get_report(self, request, queryset, report_display_fields, report_to):
         list_headers = []

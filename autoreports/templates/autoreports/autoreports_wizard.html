@@ -12,6 +12,7 @@
         (function($){
             $(document).ready(function () {
                 $("tr.fields").fadeOut();
+                $("div.advanced_options").fadeOut();
 
                 function title_click(){
                     var id = $(this).parent().parent().parent().attr("id");
@@ -39,10 +40,12 @@
                             async: true,
                             dataType: 'text/html',
                             success: function(response){
-                                tr_link.after('<tr class="visibility"><td colspan="4">' + response + '</tr></tr>');
+                                tr_link.after('<tr class="visibility"><td colspan="5">' + response + '</tr></tr>');
                                 tr_link.next().find("table tr.fields").fadeOut();
                                 tr_link.next().find("table tr.title h3 a").click(title_click);
-                                tr_link.next().find("table tr.fields a").click(field_click);
+                                tr_link.next().find("table tr.fields label a").click(field_click);
+                                tr_link.next().find("table tr.fields a.change_widget").click(change_widget_click);
+                                tr_link.next().find("table tr.fields a.default_value").click(default_value_click);
                             }
                         });
                     }
@@ -58,9 +61,76 @@
                     }
                     return false;
                 }
-                $("tr.title h3 a").click(title_click);
-                $("tr.fields a").click(field_click);
 
+                function advanced_options_click(){
+                    var advanced_options = $(this).parent().find("div.advanced_options");
+                    if (!advanced_options.hasClass("visibility")) {
+                        advanced_options.fadeIn();
+                        advanced_options.addClass("visibility");
+                    }
+                    else {
+                        advanced_options.fadeOut();
+                        advanced_options.removeClass("visibility");
+                    }
+                    return false;
+                }
+
+
+                function change_widget_click(){
+                    var link = $(this);
+                    var app_label = $("div.app_label").html();
+                    var module_name = $("div.module_name").html();
+                    var prefix = link.attr("href").replace('#', '');
+                    var url = "{% url reports_ajax_advanced_options %}" + "?app_label=" + app_label + "&module_name=" + module_name + "&prefix=" + prefix + "&option=change_widget";;
+                    $.ajax({
+                        url: url,
+                        type: "GET",
+                        async: true,
+                        dataType: 'text/html',
+                        success: function(response){
+                            link.fadeOut();
+                            response = eval("(" + response + ")");
+                            var advanced_options = "<label>{% trans 'Choose a widget' %}</label>"
+                            advanced_options += "<select name='widget_"+ prefix +"' id='id_widget_"+ prefix +"'>";
+                            $.map(response, function(elem, i){
+                                advanced_options += "<option value='"+ elem[0] +"'>"+ elem[1] +"</option>"
+                            });
+                            advanced_options += "</select>";
+                            link.parent().find("div.change_widget").html(advanced_options);
+                        }
+                    });
+                    return false;
+                }
+
+                function default_value_click(){
+                    var link = $(this);
+                    var app_label = $("div.app_label").html();
+                    var module_name = $("div.module_name").html();
+                    var prefix = link.attr("href").replace('#', '');
+                    var widget = $("select#id_widget_"+prefix);
+                    if (widget.length == 1) {
+                        var widget_selected = widget.find("option:selected").val();
+                        var url = "{% url reports_ajax_advanced_options %}" + "?app_label=" + app_label + "&module_name=" + module_name + "&prefix=" + prefix + "&widget_selected=" + widget_selected + "&option=default_value";
+                        $.ajax({
+                            url: url,
+                            type: "GET",
+                            async: true,
+                            dataType: 'text/html',
+                            success: function(response){
+                                link.parent().find("div.default_value").html(response);
+                            }
+                        });
+                    }
+                    else {
+                        alert("{% trans 'First Select a widget'%}");
+                    }
+                    return false;
+                }
+                $("tr.title h3 a").click(title_click);
+                $("tr.fields label a").click(field_click);
+                $("a.advanced_options").click(advanced_options_click);
+                $("tr.fields a.change_widget").click(change_widget_click);
+                $("tr.fields a.default_value").click(default_value_click);
             });
         })(jQuery);
     </script>
@@ -78,6 +148,8 @@
     <h1>{% trans "Wizard Form" %}</h1>
     <div id="content-main">
         <form action="." method="post" class="report">
+            <div class="app_label" style="display:none">{{ app_label }}</div>
+            <div class="module_name" style="display:none">{{ module_name }}</div>
             {% block contentform %}
                 {% block contentformname %}
                     {{ form_name.as_p }}

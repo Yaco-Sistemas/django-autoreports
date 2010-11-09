@@ -63,6 +63,16 @@ def get_available_formats():
     return formats
 
 
+def change_widget(widget_selected, field):
+    widget_class = getattr(__import__('django.forms.widgets', {}, {}, True), widget_selected, None)
+    widget_dict = field.widget.__dict__
+    choices = getattr(field.widget, 'choices', None)
+    field.widget = widget_class()
+    field.widget.choices = choices
+    field.widget.__dict__ = widget_dict
+    return field
+
+
 def get_fields_from_model(model, prefix=None):
     model_fields = []
     objs_related = []
@@ -75,7 +85,10 @@ def get_fields_from_model(model, prefix=None):
         field_name_prefix = field_name
         if prefix:
             field_name_prefix = '%s__%s' % (prefix, field_name)
-        if isinstance(field, RelatedObject):
+
+        if field_name.endswith('_ptr'):
+            continue
+        elif isinstance(field, RelatedObject):
             field_type = prefix and '%s__objs_related' % prefix or 'objs_related'
             objs_related.append({'field': field,
                                  'name': field_name_prefix,
@@ -84,7 +97,8 @@ def get_fields_from_model(model, prefix=None):
                                  'verbose_name': field_name,
                                  'app_label': field.model._meta.app_label,
                                  'module_name': field.model._meta.module_name,
-                                 'help_text': ''})
+                                 'help_text': '',
+                                 'advanced_options': True, })
         elif isinstance(field, RelatedField):
             field_type = prefix and '%s__fields_related' % prefix or 'fields_related'
             fields_related.append({'field': field,
@@ -94,15 +108,17 @@ def get_fields_from_model(model, prefix=None):
                                   'verbose_name': field.verbose_name,
                                   'app_label': field.rel.to._meta.app_label,
                                   'module_name': field.rel.to._meta.module_name,
-                                  'help_text': field.help_text})
+                                  'help_text': field.help_text,
+                                  'advanced_options': True, })
         else:
             field_type = prefix and '%s__model_fields' % prefix or 'model_fields'
             field_dict = {'field': field,
                           'name': field_name_prefix,
                           'type': field_type,
                           'verbose_name': field.verbose_name,
-                          'help_text': field.help_text}
-            if isinstance(field, django_fields.CharField):
+                          'help_text': field.help_text,
+                          'advanced_options': True, }
+            if isinstance(field, django_fields.CharField) or isinstance(field, django_fields.TextField):
                 field_dict['choices'] = CHOICES_STR
             elif isinstance(field, django_fields.IntegerField):
                 field_dict['choices'] = CHOICES_INTEGER
@@ -132,5 +148,6 @@ def get_fields_from_model(model, prefix=None):
                           'verbose_name': func_name,
                           'help_text': func.im_func.func_doc,
                           'choices': None,
+                          'advanced_options': False,
                           })
     return (model_fields, objs_related, fields_related, funcs)

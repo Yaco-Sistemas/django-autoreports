@@ -9,16 +9,18 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.http import HttpResponse
+from django.forms import widgets
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
+from django.utils import simplejson
 from django.utils.translation import ugettext as _
 from django.utils.translation import get_language
 
 from decimal import Decimal
 from cmsutils.adminfilters import QueryStringManager
 
-from autoreports.utils import add_domain, get_available_formats, get_fields_from_model
+from autoreports.utils import add_domain, get_available_formats, get_fields_from_model, change_widget
 from autoreports.csv_to_excel import  convert_to_excel
 
 CHANGE_VALUE = {'get_absolute_url': add_domain}
@@ -43,8 +45,11 @@ def reports_api(request, registry_key):
 
 
 def reports_ajax_fields(request):
-    ct = ContentType.objects.get(model=request.GET.get('module_name'),
-                                 app_label=request.GET.get('app_label'))
+
+    module_name = request.GET.get('module_name')
+    app_label = request.GET.get('app_label')
+    ct = ContentType.objects.get(model=module_name,
+                                 app_label=app_label)
     prefix = request.GET.get('prefix')
     model = ct.model_class()
     model_fields, objs_related, fields_related, funcs = get_fields_from_model(model, prefix)
@@ -54,9 +59,49 @@ def reports_ajax_fields(request):
                'fields_related': fields_related,
                'objs_related': objs_related,
                'funcs': funcs,
-               'level_margin': (prefix.count('__') + 1) * 25, }
+               'level_margin': (prefix.count('__') + 1) * 25,
+               'app_label': app_label,
+               'module_name': module_name}
     html = render_to_string('autoreports/inc.render_model.html', context)
     return HttpResponse(html)
+
+
+def reports_ajax_advanced_options(request):
+    from autoreports.forms import ReportFilterForm
+    from autoreports.models import modelform_factory
+    option = request.GET.get('option')
+    module_name = request.GET.get('module_name')
+    app_label = request.GET.get('app_label')
+    ct = ContentType.objects.get(model=module_name,
+                                 app_label=app_label)
+    prefix = request.GET.get('prefix')
+    model = ct.model_class()
+    form = modelform_factory(model=model, form=ReportFilterForm)(fields=(prefix, ), is_admin=True, use_subfix=False)
+    current_widget = form.fields.values()[0].widget
+    current_widget__class_name = current_widget.__class__.__name__
+    if option == 'change_widget':
+        if isinstance(current_widget, widgets.DateTimeInput):
+            choices = (('DateTimeInput', 'DateTimeInput'), )
+        elif isinstance(current_widget, widgets.Textarea):
+            choices = (('TextInput', 'TextInput'), )
+        elif isinstance(current_widget, widgets.CheckboxInput) or \
+            isinstance(current_widget, widgets.RadioInput) or \
+            isinstance(current_widget, widgets.Select) or \
+            isinstance(current_widget, widgets.SelectMultiple):
+            choices = (('CheckboxSelectMultiple', 'CheckboxSelectMultiple'),
+                       ('Select', 'Select'),
+                       ('RadioSelect', 'RadioSelect'),
+                       ('SelectMultiple', 'SelectMultiple'), )
+        else:
+            choices = tuple()
+        choices = tuple(set(((current_widget__class_name, current_widget__class_name), ) + choices + (('HiddenInput', 'HiddenInput', ), )))
+        return HttpResponse(simplejson.dumps(choices))
+    elif option == 'default_value':
+        widget_selected = request.GET.get('widget_selected')
+        if current_widget__class_name != widget_selected and widget_selected != 'HiddenInput':
+            field = change_widget(widget_selected, form.fields.values()[0])
+            form.fields[form.fields.keys()[0]] = field
+        return HttpResponse(form.__unicode__())
 
 
 def reports_view(request, app_name, model_name, fields=None,

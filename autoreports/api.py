@@ -48,7 +48,7 @@ class ReportApi(object):
         form_filter = self.get_report_form_filter(report)
         form_display = self.get_report_form_display(data, report)
         if data and form_display.is_valid():
-            report_display_fields = form_display.cleaned_data['__report_display_fields_choices']
+            report_display_fields = form_display.cleaned_data.get('__report_display_fields_choices', [])
             queryset = queryset or self.model.objects.all()
 
             return form_filter.get_report(request, queryset, report_display_fields, submit)

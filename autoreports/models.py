@@ -106,6 +106,7 @@ class Report(models.Model):
     name = models.CharField(_('Name'), max_length=200)
     report_filter_fields = models.TextField(_('Report filter fields'), null=True, blank=True)
     report_display_fields = models.TextField(_('Report display fields'), null=True, blank=True)
+    advanced_options = models.TextField(_('advanced_options'), null=True, blank=True)
     content_type = models.ForeignKey(ContentType, verbose_name=_('Content type'))
 
     @property
