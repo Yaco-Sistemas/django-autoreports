@@ -307,7 +307,7 @@ def get_value(row_field_name, class_model, lang):
                 if hasattr(value, '__call__'):
                     value = value()
                 elif getattr(value, 'all', None):
-                    value = ', '.join([val.__unicode__() for val in value.all()])
+                    value = ', '.join([getattr(val, '__unicode__', getattr(val, '__repr__'))() for val in value.all()])
             if isinstance(value, unicode):
                 value = value.encode('utf8')
             if isinstance(value, str):

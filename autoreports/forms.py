@@ -148,7 +148,7 @@ class ReportForm(BaseReportForm):
                             return self.get_real_related_field(field_name, '__'.join(field_split[1:]), model_queryset, fields_real)
                         translatable_fields = self.get_translatable_fields(model_queryset)
                         translatable_fields_lang = ['%s_%s' %(translatable_field, get_language()) for translatable_field in translatable_fields]
-                        field_real = self.get_real_model_field(model_queryset, field_name, field, fields_real, translatable_fields)
+                        return self.get_real_model_field(model_queryset, field_name, field, fields_real, translatable_fields)
 
             else:
                 return self._set_field(field_name, '__id__in', relation.field.formfield(), fields_real)
@@ -234,7 +234,8 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
         list_headers = []
         for key in report_display_fields:
             if not key in self.fields.keys():
-                label = self.get_real_field(self._meta.model, key).label
+                field = self.get_real_field(self._meta.model, key)
+                label = field and field.label or key
             else:
                 label = self.fields[key].label
             list_headers.append(unicode(label).encode('utf-8'))
