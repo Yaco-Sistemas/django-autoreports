@@ -29,10 +29,10 @@ class ReportApi(object):
             super(ReportApi, self).__init__(*args, **kwargs)
         self.verbose_name = getattr(self, 'verbose_name', self.__class__.__name__)
 
-    def get_report_form_filter(self, report=None):
+    def get_report_form_filter(self, data, report=None):
         form_filter_class = modelform_factory(model=self.model,
                           form=self.report_form_filter)
-        form_filter = form_filter_class(fields=self.get_report_filter_fields(report), is_admin=self.is_admin, report=report)
+        form_filter = form_filter_class(data=data, fields=self.get_report_filter_fields(report), is_admin=self.is_admin, report=report)
 
         return form_filter
 
@@ -45,9 +45,9 @@ class ReportApi(object):
     def report(self, request, report=None, queryset=None, template_name='autoreports/autoreports_form.html', extra_context=None):
         submit = (request.GET.get('__report_csv', None) and 'csv') or (request.GET.get('__report_excel', None) and 'excel')
         data = submit and request.GET or None
-        form_filter = self.get_report_form_filter(report)
+        form_filter = self.get_report_form_filter(data, report)
         form_display = self.get_report_form_display(data, report)
-        if data and form_display.is_valid():
+        if data and form_display.is_valid() and form_filter.is_valid():
             report_display_fields = form_display.cleaned_data.get('__report_display_fields_choices', [])
             queryset = queryset or self.model.objects.all()
 
