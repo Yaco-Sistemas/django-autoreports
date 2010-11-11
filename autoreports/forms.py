@@ -230,6 +230,17 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
         if self.is_admin:
             self.__unicode__ = self.as_django_admin
 
+    def is_valid(self):
+        fields_required = []
+        for key, field in self.fields.items():
+            if field.required:
+                fields_required.append(key)
+                field.required = False
+        valid = super(ReportFilterForm, self).is_valid()
+        for field_required in fields_required:
+            self.fields[field_required].required = True
+        return valid
+
     def get_report(self, request, queryset, report_display_fields, report_to):
         list_headers = []
         for key in report_display_fields:
