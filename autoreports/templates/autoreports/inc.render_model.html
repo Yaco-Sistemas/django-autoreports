@@ -1,11 +1,21 @@
 {% load i18n %}
 <table style="margin-left: {{ level_margin }}px" class="level_margin_{{ level_margin }}">
     <tr>
-        <th><span>{% trans "Field" %}</span></th>
-        <th><span>{% trans "Select filter" %}</span></th>
-        <th><span>{% trans "Select display" %}</span></th>
-        <th><span>{% trans "Help text" %}</span></th>
-        <th><span>{% trans "Advanced Options" %}</span></th>
+        {% if columns.fields %}
+            <th><span>{% trans "Field" %}</span></th>
+        {% endif %}
+        {% if columns.filter %}
+            <th><span>{% trans "Select filter" %}</span></th>
+        {% endif %}
+        {% if columns.display %}
+            <th><span>{% trans "Select display" %}</span></th>
+        {% endif %}
+        {% if columns.help_text %}
+            <th><span>{% trans "Help text" %}</span></th>
+        {% endif %}
+        {% if columns.advanced_options %}
+            <th><span>{% trans "Advanced Options" %}</span></th>
+        {% endif %}
     </tr>
     {% if model_fields %}
         <tr id="{% if prefix %}{{ prefix }}__{% endif %}model_fields" class="title">

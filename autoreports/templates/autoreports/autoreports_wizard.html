@@ -145,14 +145,16 @@
 {% endblock %}
 
 {% block content %}
-    <h1>{% trans "Wizard Form" %}</h1>
+    {% block contenttitle %}
+        <h1>{% trans "Wizard Form" %}</h1>
+    {% endblock %}
     <div id="content-main">
         <form action="." method="post" class="report">
             <div class="app_label" style="display:none">{{ app_label }}</div>
             <div class="module_name" style="display:none">{{ module_name }}</div>
             {% block contentform %}
                 {% block contentformname %}
-                    {{ form_name.as_p }}
+                    {{ form_top.as_p }}
                 {% endblock %}
                 {% block contentformmodel %}
                     {% include "autoreports/inc.render_model.html" %}

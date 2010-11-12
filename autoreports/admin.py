@@ -16,7 +16,7 @@ from django.utils import simplejson
 from django.utils.translation import ugettext_lazy as _
 
 from autoreports.api import ReportApi
-from autoreports.forms import ReportNameAdminForm
+from autoreports.forms import ReportNameAdminForm, ReportNameForm
 from autoreports.models import Report
 from autoreports.utils import get_fields_from_model
 from autoreports.views import reports_view, set_filters_search_fields
@@ -130,12 +130,26 @@ class ReportAdmin(ReportApi):
         ], context, context_instance=template.RequestContext(request))
 
     def report_wizard(self, request, queryset=None, template_name='autoreports/autoreports_adminwizard.html', extra_context=None):
+        content_type = ContentType.objects.get_for_model(self.model)
+        return self.report_api_wizard(request, queryset=queryset,
+                                      template_name=template_name,
+                                      extra_context=extra_context,
+                                      model=Report,
+                                      form_top_class=ReportNameAdminForm,
+                                      content_type=content_type)
+
+    def report_api_wizard(self, request,
+                          queryset=None, template_name='autoreports/autoreports_adminwizard.html',
+                          extra_context=None,
+                          model_to_report=None,
+                          model=Report,
+                          form_top_class=ReportNameForm,
+                          content_type=None):
         data = None
         if request.method == 'POST':
             data = request.POST
-        form_name = ReportNameAdminForm(data=data)
-
-        if form_name.is_valid():
+        form_top = form_top_class(data=data)
+        if form_top.is_valid():
             report_filter_fields = []
             report_display_fields = []
             report_advance = {}
@@ -150,31 +164,43 @@ class ReportAdmin(ReportApi):
                     default_value = request.POST.get(field_name, None)
                     if default_value:
                         report_advance[field_name]['default'] = default_value
-            name = form_name.cleaned_data.get('name', None) or 'report of %s' % unicode(self.model._meta.verbose_name)
-            content_type = ContentType.objects.get_for_model(self.model)
-            report = Report.objects.create(name=name,
-                                           report_display_fields=', '.join(report_display_fields),
-                                           report_filter_fields=', '.join(report_filter_fields),
-                                           content_type=content_type,
-                                           advanced_options=simplejson.dumps(report_advance))
+            name = form_top.cleaned_data.get('name', None) or 'report of %s' % unicode(self.model._meta.verbose_name)
+            report = self._create_report(model, name, report_display_fields,
+                                        report_filter_fields, content_type,
+                                        report_advance)
             return HttpResponseRedirect('../%s' % report.id)
-
-        model_fields, objs_related, fields_related, funcs = get_fields_from_model(self.model)
-        context = {'opts': self.opts,
+        model_fields, objs_related, fields_related, funcs = get_fields_from_model(content_type.model_class())
+        context = {'add': True,
+                   'opts': self.opts,
                    'model_fields': model_fields,
                    'fields_related': fields_related,
                    'objs_related': objs_related,
                    'funcs': funcs,
+                   'columns': {'fields': True,
+                               'filter': True,
+                               'display': True,
+                               'help_text': True,
+                               'advanced_options': True},
                    'ADMIN_MEDIA_PREFIX': settings.ADMIN_MEDIA_PREFIX,
                    'template_base': "admin/base_site.html",
                    'level_margin': 0,
-                   'form_name': form_name,
+                   'form_top': form_top,
                    'module_name': self.model._meta.module_name,
                    'app_label': self.model._meta.app_label,
                   }
+        extra_context = extra_context or {}
+        context.update(extra_context)
         return render_to_response(template_name,
                                   context,
                                   context_instance=RequestContext(request))
+
+    def _create_report(self, model, name, report_display_fields, report_filter_fields, content_type, report_advance):
+        report = model.objects.create(name=name,
+                                      report_display_fields=', '.join(report_display_fields),
+                                      report_filter_fields=', '.join(report_filter_fields),
+                                      content_type=content_type,
+                                      advanced_options=simplejson.dumps(report_advance))
+        return report
 
     def report_view(self, request, report_id, queryset=None, template_name='autoreports/autoreports_adminform.html', extra_context=None):
         report = Report.objects.get(pk=report_id)

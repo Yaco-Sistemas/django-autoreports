@@ -101,8 +101,7 @@ class ReportModelFormMetaclass(ModelFormMetaclass):
         return new_class
 
 
-class Report(models.Model):
-
+class BaseReport(models.Model):
     name = models.CharField(_('Name'), max_length=200)
     report_filter_fields = models.TextField(_('Report filter fields'), null=True, blank=True)
     report_display_fields = models.TextField(_('Report display fields'), null=True, blank=True)
@@ -122,8 +121,16 @@ class Report(models.Model):
         return tuple()
 
     class Meta:
-        verbose_name = _('report')
-        verbose_name_plural = _('reports')
+        verbose_name = _('base report')
+        verbose_name_plural = _('base reports')
+        abstract = True
 
     def __unicode__(self):
         return self.name
+
+
+class Report(BaseReport):
+
+    class Meta:
+        verbose_name = _('report')
+        verbose_name_plural = _('reports')

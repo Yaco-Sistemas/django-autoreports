@@ -259,7 +259,7 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
                  report_to=report_to)
 
 
-class ReportNameForm(BaseReportForm, FormAdminDjango):
+class ReportNameForm(BaseReportForm):
 
     def __init__(self, *args, **kwargs):
         super(ReportNameForm, self).__init__(*args, **kwargs)
@@ -271,4 +271,6 @@ class ReportNameForm(BaseReportForm, FormAdminDjango):
 
 
 class ReportNameAdminForm(ReportNameForm, FormAdminDjango):
-    pass
+
+    def __unicode__(self):
+        return self.as_django_admin()
