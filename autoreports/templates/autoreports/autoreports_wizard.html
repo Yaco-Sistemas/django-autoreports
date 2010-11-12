@@ -160,9 +160,13 @@
                     {% include "autoreports/inc.render_model.html" %}
                 {% endblock %}
             {% endblock %}
+            {% block submitwrapper %}
             <div class="submit-row">
-                <input type="submit" name="__report_wizard" class="default" value="{% trans "Create a report" %}"/>
+                {% block submit %}
+                    <input type="submit" name="__report_wizard" class="default" value="{% trans "Create a report" %}"/>
+                {% endblock %}
             </div>
+            {% endblock %}
         </form>
     </div>
 {% endblock %}
