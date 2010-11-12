@@ -185,8 +185,8 @@ class ReportAdmin(ReportApi):
                    'template_base': "admin/base_site.html",
                    'level_margin': 0,
                    'form_top': form_top,
-                   'module_name': self.model._meta.module_name,
-                   'app_label': self.model._meta.app_label,
+                   'module_name': content_type.model,
+                   'app_label': content_type.app_label,
                   }
         extra_context = extra_context or {}
         context.update(extra_context)
