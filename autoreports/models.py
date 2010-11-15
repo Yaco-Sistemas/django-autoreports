@@ -120,6 +120,14 @@ class BaseReport(models.Model):
             return tuple(self.report_display_fields.split(', '))
         return tuple()
 
+    @classmethod
+    def get_colums_wizard(cls):
+        return {'fields': True,
+                'filter': True,
+                'display': True,
+                'help_text': True,
+                'advanced_options': True}
+
     class Meta:
         verbose_name = _('base report')
         verbose_name_plural = _('base reports')

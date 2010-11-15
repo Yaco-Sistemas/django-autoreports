@@ -32,7 +32,7 @@
                     var tr_link = link.parent().parent().parent();
                     var model = link.attr("href").split("/");
                     var prefix = link.parent().attr("for").replace('id_', '');
-                    var url = "{% url reports_ajax_fields %}" + "?app_label=" + model[0] + "&module_name=" + model[1] + "&prefix=" + prefix;
+                    var url = "{% url reports_ajax_fields %}" + "?app_label=" + model[0] + "&module_name=" + model[1] + "&prefix=" + prefix + "&model__module_name=" + "{{ model__module_name }}" + "&model__app_label=" + "{{ model__app_label }}" ;
                     if (tr_link.next().find("table").length == 0) {
                         $.ajax({
                             url: url,

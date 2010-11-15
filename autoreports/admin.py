@@ -176,17 +176,15 @@ class ReportAdmin(ReportApi):
                    'fields_related': fields_related,
                    'objs_related': objs_related,
                    'funcs': funcs,
-                   'columns': {'fields': True,
-                               'filter': True,
-                               'display': True,
-                               'help_text': True,
-                               'advanced_options': True},
+                   'columns': model.get_colums_wizard(),
                    'ADMIN_MEDIA_PREFIX': settings.ADMIN_MEDIA_PREFIX,
                    'template_base': "admin/base_site.html",
                    'level_margin': 0,
                    'form_top': form_top,
                    'module_name': content_type.model,
                    'app_label': content_type.app_label,
+                   'model__module_name': model._meta.module_name,
+                   'model__app_label': model._meta.app_label,
                   }
         extra_context = extra_context or {}
         context.update(extra_context)

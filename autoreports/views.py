@@ -45,15 +45,18 @@ def reports_api(request, registry_key):
 
 
 def reports_ajax_fields(request):
-
     module_name = request.GET.get('module_name')
     app_label = request.GET.get('app_label')
+    model__module_name = request.GET.get('model__module_name')
+    model__app_label = request.GET.get('model__app_label')
     ct = ContentType.objects.get(model=module_name,
                                  app_label=app_label)
+    model_ct = ContentType.objects.get(model=model__module_name,
+                                       app_label=model__app_label)
+
     prefix = request.GET.get('prefix')
     model = ct.model_class()
     model_fields, objs_related, fields_related, funcs = get_fields_from_model(model, prefix)
-
     context = {'prefix': prefix,
                'model_fields': model_fields,
                'fields_related': fields_related,
@@ -61,6 +64,7 @@ def reports_ajax_fields(request):
                'funcs': funcs,
                'level_margin': (prefix.count('__') + 1) * 25,
                'app_label': app_label,
+               'columns': model_ct.model_class().get_colums_wizard(),
                'module_name': module_name}
     html = render_to_string('autoreports/inc.render_model.html', context)
     return HttpResponse(html)
