@@ -20,7 +20,8 @@ from django.utils.translation import get_language
 from decimal import Decimal
 from cmsutils.adminfilters import QueryStringManager
 
-from autoreports.utils import add_domain, get_available_formats, get_fields_from_model, change_widget
+from autoreports.utils import (add_domain, get_available_formats,
+                               get_fields_from_model, change_widget, CHOICES_DATE)
 from autoreports.csv_to_excel import  convert_to_excel
 
 CHANGE_VALUE = {'get_absolute_url': add_domain}
@@ -142,30 +143,28 @@ def reports_view(request, app_name, model_name, fields=None,
     filters_clean = {}
 
     def convert_filter_datetime(key, endswith, filters, filters_clean):
-        keys_endswith = {'__lte_0': '__lte',
-                         '__gte_0': '__gte',
-                         '__lte_1': '__lte',
-                         '__gte_1': '__gte'}
-        key_new = key.replace(endswith, keys_endswith[endswith])
+        key_new = key.replace(endswith, '')
         value_new = '%s %s' %(filters.get('%s_0' % key_new, ''),
                                 filters.get('%s_1' % key_new, ''))
         value_new = value_new.strip()
-        if value_new:
-            filters_clean[key_new] = value_new
+        return (key_new, value_new)
+
+    choices_date_end = [choice_date_end for choice_date_end, choice_date_text in CHOICES_DATE]
 
     for key, value in filters.items():
         if value in [[u''], u'']:
             continue
-        elif value == '' and (key.endswith('__lte') or key.endswith('__gte')):
-            continue
-        elif key.endswith('__lte_0'):
-            convert_filter_datetime(key, '__lte_0', filters, filters_clean)
-        elif key.endswith('__gte_0'):
-            convert_filter_datetime(key, '__gte_0', filters, filters_clean)
-        elif key.endswith('__lte_1'):
-            convert_filter_datetime(key, '__lte_1', filters, filters_clean)
-        elif key.endswith('__gte_1'):
-            convert_filter_datetime(key, '__gte_1', filters, filters_clean)
+        elif key.endswith('_0') or key.endswith('_1'):
+            key_new = key
+            value_new = filters[key]
+            for choice_date_end in choices_date_end:
+                if key.endswith('__%s_0' % choice_date_end):
+                    key_new, value_new = convert_filter_datetime(key, '_0', filters, filters_clean)
+                    break
+                elif key.endswith('__%s_1' % choice_date_end):
+                    key_new, value_new = convert_filter_datetime(key, '_1', filters, filters_clean)
+                    break
+            filters_clean[key_new] = value_new
         else:
             filters_clean[key] = filters[key]
 

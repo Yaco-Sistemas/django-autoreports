@@ -230,6 +230,9 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
         if self.is_admin:
             self.__unicode__ = self.as_django_admin
 
+    def validate_unique(self):
+        pass
+
     def is_valid(self):
         fields_required = []
         for key, field in self.fields.items():
