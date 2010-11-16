@@ -84,6 +84,11 @@ class ReportForm(BaseReportForm):
                         field_real.label = u"%s >=" % label
                     if self.is_admin:
                         if isinstance(field_real, forms.DateTimeField):
+                            field_real_split = forms.SplitDateTimeField()
+                            fields = field_real_split.fields
+                            field_real_split.__dict__ = field_real.__dict__
+                            field_real_split.fields = fields
+                            field_real = field_real_split
                             field_real.widget = AdminSplitDateTime()
                         else:
                             field_real.widget = AdminDateWidget()
