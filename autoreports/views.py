@@ -238,12 +238,12 @@ def csv_head(request, filename, columns, delimiter=','):
 def get_row_and_field_name(row, field_name):
     field_name_reverse = '%s_set' % field_name
     if '__' not in field_name:
-        if getattr(row, field_name, None):
+        if hasattr(row, field_name):
             return [(row, field_name)]
-        elif getattr(row, field_name_reverse, None):
+        elif hasattr(row, field_name_reverse):
             return [(row, field_name_reverse)]
         return [(row, field_name)]
-    elif getattr(row, field_name, None) and callable(getattr(row, field_name)):
+    elif hasattr(row, field_name) and callable(getattr(row, field_name)):
         return [(row, field_name)]
 
     field_split = field_name.split('__')
