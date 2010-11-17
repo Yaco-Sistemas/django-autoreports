@@ -82,17 +82,16 @@ class ReportForm(BaseReportForm):
                     if not self.report:
                         label = field_real.label
                         field_real.label = u"%s >=" % label
-                    if self.is_admin:
-                        if isinstance(field_real, forms.DateTimeField):
-                            field_real_split = forms.SplitDateTimeField()
-                            fields = field_real_split.fields
-                            field_real_split.__dict__ = field_real.__dict__
-                            field_real_split.fields = fields
-                            field_real = field_real_split
-                            field_real.widget = AdminSplitDateTime()
-                        else:
-                            field_real.widget = AdminDateWidget()
-                        field_real.show_hidden_initial = False
+                    if isinstance(field_real, forms.DateTimeField):
+                        field_real_split = forms.SplitDateTimeField()
+                        fields = field_real_split.fields
+                        field_real_split.__dict__ = field_real.__dict__
+                        field_real_split.fields = fields
+                        field_real = field_real_split
+                        field_real.widget = AdminSplitDateTime()
+                    else:
+                        field_real.widget = AdminDateWidget()
+                    field_real.show_hidden_initial = False
                     return self._set_field(field_name, '__gte', field_real, fields_real)
                     if not self.report:
                         from copy import deepcopy
