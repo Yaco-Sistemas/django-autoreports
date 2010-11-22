@@ -29,3 +29,7 @@ form.report table.fields {
 form.report table th span {
     margin-left: 25px;
 }
+
+form.report table td {
+    overflow: hidden;
+}
