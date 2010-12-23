@@ -113,8 +113,6 @@ def reports_view(request, app_name, model_name, fields=None,
                  list_headers=None, ordering=None, filters=Q(),
                  model_admin=None, queryset=None,
                  report_to='csv'):
-    request_get = request.GET.copy()
-
     class_model = models.get_model(app_name, model_name)
     list_fields = fields
     formats = get_available_formats()
