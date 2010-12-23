@@ -170,7 +170,7 @@ def reports_view(request, app_name, model_name, fields=None,
     if ordering:
         object_list = object_list.order_by(*ordering)
 
-    response = csv_head(request, name, list_headers)
+    response = csv_head(name, list_headers)
     csv_body(response, class_model, object_list, list_fields)
     if report_to == 'excel':
         convert_to_excel(response)
@@ -225,7 +225,7 @@ def is_translate_field(field_name, class_model):
     return False
 
 
-def csv_head(request, filename, columns, delimiter=','):
+def csv_head(filename, columns, delimiter=','):
     response = HttpResponse(mimetype='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename=%s' %filename
     writer = csv.writer(response, delimiter=delimiter)
