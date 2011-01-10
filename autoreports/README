@@ -40,7 +40,7 @@ You can redefine it in every model admin you want::
 Development
 ===========
 
-You can get the last bleeding edge version of searchform by doing a checkout
+You can get the last bleeding edge version of autoreports by doing a checkout
 of its subversion repository::
 
   svn co https//svnpub.yaco.es/djangoapps/autoreports/trunk/autoreports
