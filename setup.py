@@ -15,8 +15,7 @@
 
 import os
 import re
-import ez_setup
-ez_setup.use_setuptools()
+
 from setuptools import setup, find_packages
 
 
@@ -75,7 +74,7 @@ setup(
         'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
     ],
     license="LGPL 3",
-    keywords="django autreports reports csv xls excel",
+    keywords="django autoreports reports csv xls excel",
     packages=find_packages('.'),
     include_package_data=True,
 )
