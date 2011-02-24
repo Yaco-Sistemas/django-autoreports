@@ -13,13 +13,10 @@
  # You should have received a copy of the GNU Lesser General Public License
  # along with this programe.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-
 from django import template
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.options import IncorrectLookupParameters
-from django.contrib.admin.util import unquote
 from django.contrib.admin.views.main import ChangeList, ERROR_FLAG
 from django.contrib.admin.templatetags.admin_list import result_headers
 from django.contrib.contenttypes.models import ContentType
@@ -40,27 +37,6 @@ from autoreports.views import reports_view, set_filters_search_fields
 class ReportAdmin(ReportApi):
 
     is_admin = True
-
-    def __call__(self, request, url):
-        if url and url.endswith('report'):
-            url = url[:url.find('/report/')]
-            return self.report_list(request)
-        elif url and url.endswith('report/wizard'):
-            url = url[:url.find('/report/wizard')]
-            return self.report_wizard(request)
-        elif url and url.endswith('report/advance'):
-            url = url[:url.find('/report/advance')]
-            return self.report_advance(request)
-        elif url and url.endswith('report/quick'):
-            url = url[:url.find('/report/quick')]
-            return self.report_quick(request)
-        elif url:
-            url_compile = re.compile('.*report/(?P<report_id>\d+)$')
-            m = url_compile.match(url)
-            if m:
-                report_id = m.groupdict()['report_id']
-                return self.report_view(request, report_id)
-        return super(ReportAdmin, self).__call__(request, url and unquote(url) or url)
 
     def get_urls(self):
         from django.conf.urls.defaults import patterns, url
@@ -250,8 +226,8 @@ class ReportAdmin(ReportApi):
             headers = list(result_headers(cl))
             j = 0
             for i, header in enumerate(headers):
-                if not header.get('url', None) and not getattr(self.model, fields[i-j], None):
-                    del fields[i-j]
+                if not header.get('url', None) and not getattr(self.model, fields[i - j], None):
+                    del fields[i - j]
                     j = j + 1
         except IncorrectLookupParameters:
             pass
