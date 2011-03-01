@@ -1,13 +1,15 @@
 from django.contrib import admin
 
+from autoreports.admin import ReportAdmin
+
 from multimediaresources.models import TypeResource, Resource
 
 
-class TypeResourceAdmin(admin.ModelAdmin):
+class TypeResourceAdmin(ReportAdmin, admin.ModelAdmin):
     pass
 
 
-class ResourceAdmin(admin.ModelAdmin):
+class ResourceAdmin(ReportAdmin, admin.ModelAdmin):
     pass
 
 
