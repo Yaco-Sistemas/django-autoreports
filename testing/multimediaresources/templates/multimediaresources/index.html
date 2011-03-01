@@ -1,0 +1,39 @@
+{% extends "multimediaresources/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+<h1>Manage Multimedia Resources</h1>
+<h2>Types of Resources</h2>
+<div>
+  {% for type in types %}
+  <div><p>{{ type.name }}</p>
+    <ul>
+      <li>{% trans "Name: " %}{{ type.name }}</li>
+    </ul>
+  </div>
+  {% endfor %}
+</div>
+<h2>Resources</h2>
+<div>
+  {% for resource in resources %}
+  <div><p>{{ resource }}</p>
+    <ul>
+      <li>{% trans "Name: " %}{{ resource.name }}</li>
+      <li>{% trans "Name (auto):" %}{{resource.name" auto_height=1, auto_width=1 }}</li>
+      <li>{% trans "Description: " %}{{resource.description }}</li>
+      <li>{% trans "Description (auto):" %}{{resource.description" auto_height=1, auto_width=1 }}</li>
+      <li>{% trans "Date of creation: " %}{{resource.created }}</li>
+      <li>{% trans "Status: " %}{{resource.status }}</li>
+      <li>{% trans "Status (tag):" %}{{resource.status tag_name_cover="div" }}</li>
+      <li>{% trans "Type of resource: " %}{{resource.resource_type }}</li>
+      <li>{% trans "Owner: " %}{{resource.owner }}</li>
+      <li>{% trans "Amount: " %}{{resource.amount }}</li>
+      <li>{% trans "Can be borrow?: " %}{{resource.can_borrow }}</li>
+      <li>{% trans "Can be borrow? (class): " %}{{resource.can_borrow class_inplace="testingImplaceEditForm" }}</li>
+      <li>{% trans "Will be available from: " %}{{resource.available_from }}</li>
+    </ul>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
