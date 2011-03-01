@@ -1,5 +1,6 @@
-
+#
 # Create this file: svn propget svn:externals . > externals.txt
-# Apply this file:  svn propset svn:externals -F externals.txt
+# Apply this file:  svn propset svn:externals -F externals.txt .
+#
 
-autoreports	    http://svnpub.yaco.es/djangoapps/autoreports/trunk/autoreports
+autoreports    http://svnpub.yaco.es/djangoapps/autoreports/trunk/autoreports
