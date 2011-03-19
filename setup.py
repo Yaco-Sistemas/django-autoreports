@@ -60,13 +60,13 @@ for dirpath, dirnames, filenames in os.walk('.'):
 
 setup(
     name="django-autoreports",
-    version="0.5",
-    install_requires = parse_requirements('requirements.txt'),
-    dependency_links = parse_dependency_links('requirements.txt'),
+    version="0.6.1",
+    install_requires=parse_requirements('requirements.txt'),
+    dependency_links=parse_dependency_links('requirements.txt'),
     author="Yaco Sistemas S.L.",
     author_email="pmartin@yaco.es",
     description="Django application that lets you create reports",
-    long_description=(read('README')),
+    long_description=(read('README') + '\n\n' + read('CHANGES')),
     url='http://tracpub.yaco.es/djangoapps/wiki/AutoReports',
     classifiers=[
         'Development Status :: 4 - Beta',

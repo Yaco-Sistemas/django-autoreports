@@ -1,0 +1,4 @@
+0.6.1
+=====
+
+* Fixed an issue when used in Django 1.3
