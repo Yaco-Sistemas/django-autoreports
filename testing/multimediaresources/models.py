@@ -44,3 +44,14 @@ class Resource(models.Model):
 
     class Meta:
         verbose_name = _(u'Resources')
+
+
+class SetResource(models.Model):
+    name = models.CharField(verbose_name=_(u'Name'),
+                            max_length=100, null=False, blank=False)
+    resources = models.ManyToManyField(Resource, verbose_name=_(u'Resources'))
+
+
+class ComputerResource(models.Model):
+    url = models.URLField(verbose_name=_(u'url'), null=False, blank=False)
+    resource = models.ForeignKey(Resource, verbose_name=_(u'Resource'), null=False, blank=False)

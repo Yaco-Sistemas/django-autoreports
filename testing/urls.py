@@ -16,7 +16,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'testing.views.home', name='home'),
     # url(r'^testing/', include('testing.foo.urls')),
     url(r'^$', include('multimediaresources.urls')),
-    url(r'^inplaceeditform/', include('inplaceeditform.urls')),
+    url(r'^autoreports/', include('autoreports.urls')),
     url(r'^jsi18n/$', 'django.views.i18n.javascript_catalog', js_info_dict),
 
     # Uncomment the admin/doc line below to enable admin documentation:

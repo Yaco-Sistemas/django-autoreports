@@ -3,4 +3,4 @@
 # Apply this file:  svn propset svn:externals -F externals.txt .
 #
 
-autoreports    http://svnpub.yaco.es/djangoapps/autoreports/trunk/autoreports
+autoreports http://svnpub.yaco.es/djangoapps/autoreports/branches/autoreports-wizard-refactor/autoreports
