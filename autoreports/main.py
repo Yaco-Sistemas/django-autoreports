@@ -2,8 +2,7 @@ from django.contrib.admin.util import quote
 from django.core.exceptions import ValidationError
 from django.contrib.admin.views.main import ChangeList
 
-from autoreports.utils import pre_procession_request
-from cmsutils.adminfilters import QueryStringManager
+from autoreports.utils import pre_procession_request, get_querystring_manager
 
 
 class AutoReportChangeList(ChangeList):
@@ -16,7 +15,7 @@ class AutoReportChangeList(ChangeList):
 
     def get_query_set(self):
         query_set = super(AutoReportChangeList, self).get_query_set()
-        qsm = QueryStringManager(self.request)
+        qsm = get_querystring_manager()(self.request)
         filters = qsm.get_filters()
         self._adavanced_filters = filters
         try:

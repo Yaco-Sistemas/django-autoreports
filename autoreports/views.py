@@ -28,15 +28,14 @@ from django.template.loader import render_to_string
 from django.utils.translation import ugettext as _
 from django.utils.translation import get_language
 
-from cmsutils.adminfilters import QueryStringManager
-
 from autoreports.utils import (EXCLUDE_FIELDS,
                                get_available_formats,
                                get_fields_from_model,
                                get_value_from_object,
                                get_parser_value,
                                get_adaptor, parsed_field_name,
-                               get_field_by_name, pre_procession_request)
+                               get_field_by_name, pre_procession_request,
+                               get_querystring_manager)
 from autoreports.csv_to_excel import  convert_to_excel
 
 
@@ -114,7 +113,7 @@ def reports_view(request, app_name, model_name, fields=None,
         list_headers = translate_fields(list_fields, class_model)
     name = "%s-%s.%s" % (app_name, model_name, formats[report_to]['file_extension'])
 
-    qsm = QueryStringManager(request)
+    qsm = get_querystring_manager()(request)
     object_list = queryset and queryset.filter(filters) or class_model.objects.filter(filters)
 
     filters = qsm.get_filters()

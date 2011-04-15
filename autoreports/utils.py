@@ -328,3 +328,12 @@ def transmeta_field_name(field, field_name):
     if not field_name.endswith(field.name) and has_transmeta():
         return transmeta.get_real_fieldname(field_name, get_language())
     return field_name
+
+
+def get_querystring_manager():
+    try:
+        import cmsutils
+        from cmsutils.adminfilters import QueryStringManager
+    except ImportError:
+        from autoreports.adminfilters import QueryStringManager
+    return QueryStringManager

@@ -15,9 +15,8 @@
 
 import re
 from django import template
-
-from cmsutils.adminfilters import QueryStringManager
 from autoreports.admin import ReportAdmin
+from autoreports.utils import get_querystring_manager
 
 try:
     from merengue.adminsite import BaseAdminSite
@@ -41,7 +40,7 @@ def autoreports_admin_tools(context):
         context_tag['app_label'] = model_admin.model._meta.app_label
         context_tag['module_name'] = model_admin.model._meta.module_name
 
-        qsm = QueryStringManager(context.get('request'))
+        qsm = get_querystring_manager()(context.get('request'))
         query_string = qsm.get_query_string()
         related_field = getattr(model_admin, 'related_field', None)
         object_owner = _object_owner(context.get('request'), model_admin)
