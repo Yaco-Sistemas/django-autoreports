@@ -1,3 +1,4 @@
 # Django applications
 django-configfield
 django-form-admin
+cmsutils
