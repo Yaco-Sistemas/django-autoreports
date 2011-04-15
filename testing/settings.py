@@ -133,7 +133,7 @@ INSTALLED_APPS = (
     'autoreports',
     'cmsutils',
     'formadmin',
-    'south',
+    #'south',
     #'transmeta',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
