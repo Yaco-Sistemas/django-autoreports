@@ -3,7 +3,7 @@
 
 from os import path
 
-ugettext = lambda s: s # dummy ugettext function, as said on django docs
+ugettext = lambda s: s  # dummy ugettext function, as said on django docs
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -131,7 +131,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'multimediaresources',
     'autoreports',
-    'cmsutils',
+    #'cmsutils',
     'formadmin',
     #'south',
     #'transmeta',
@@ -178,4 +178,3 @@ AUTOREPORTS_FUNCTIONS = True
 AUTOREPORTS_INITIAL = True
 AUTOREPORTS_I18N = True
 AUTOREPORTS_SUBFIX = True
-
