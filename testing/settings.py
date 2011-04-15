@@ -1,6 +1,9 @@
+# -*- encoding: utf-8 -*-
 # Django settings for testing project.
 
 from os import path
+
+ugettext = lambda s: s # dummy ugettext function, as said on django docs
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -24,6 +27,12 @@ DATABASES = {
     }
 }
 
+LANGUAGES = (
+    ('es', ugettext('Español')),
+    ('en', ugettext('English')),
+    ('fr', ugettext('Français')),
+)
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -35,7 +44,7 @@ TIME_ZONE = 'America/Chicago'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es'
 
 SITE_ID = 1
 
@@ -103,6 +112,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfResponseMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+
 )
 
 ROOT_URLCONF = 'testing.urls'
@@ -123,6 +134,7 @@ INSTALLED_APPS = (
     'cmsutils',
     'formadmin',
     'south',
+    #'transmeta',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -161,3 +173,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
 )
+
+AUTOREPORTS_FUNCTIONS = True
+AUTOREPORTS_INITIAL = True
+AUTOREPORTS_I18N = True
+AUTOREPORTS_SUBFIX = True
+
