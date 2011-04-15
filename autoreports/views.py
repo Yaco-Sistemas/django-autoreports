@@ -16,32 +16,28 @@
 import csv
 import locale
 
-from copy import copy
-
 from django.conf import settings
 from django.contrib.admin import site
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.http import HttpResponse
-from django.forms import widgets
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.template.loader import render_to_string
-from django.utils import simplejson
 from django.utils.translation import ugettext as _
 from django.utils.translation import get_language
 
-from decimal import Decimal
 from cmsutils.adminfilters import QueryStringManager
 
-from autoreports.utils import (add_domain, get_available_formats,
-                               get_fields_from_model, change_widget, CHOICES_DATE)
+from autoreports.utils import (EXCLUDE_FIELDS,
+                               get_available_formats,
+                               get_fields_from_model,
+                               get_value_from_object,
+                               get_parser_value,
+                               get_adaptor, parsed_field_name,
+                               get_field_by_name, pre_procession_request)
 from autoreports.csv_to_excel import  convert_to_excel
-
-CHANGE_VALUE = {'get_absolute_url': add_domain}
-EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox',
-                  'q', 'o', 'ot')
 
 
 def reports_list(request, category_key=None):
@@ -63,65 +59,35 @@ def reports_api(request, registry_key):
 def reports_ajax_fields(request):
     module_name = request.GET.get('module_name')
     app_label = request.GET.get('app_label')
-    model__module_name = request.GET.get('model__module_name')
-    model__app_label = request.GET.get('model__app_label')
     ct = ContentType.objects.get(model=module_name,
                                  app_label=app_label)
-    model_ct = ContentType.objects.get(model=model__module_name,
-                                       app_label=model__app_label)
-
-    prefix = request.GET.get('prefix')
+    field = request.GET.get('field')
     model = ct.model_class()
-    model_fields, objs_related, fields_related, funcs = get_fields_from_model(model, prefix)
-    context = {'prefix': prefix,
-               'model_fields': model_fields,
-               'fields_related': fields_related,
-               'objs_related': objs_related,
+    fields, funcs = get_fields_from_model(model, field)
+    context = {'fields': fields,
                'funcs': funcs,
-               'level_margin': (prefix.count('__') + 1) * 25,
                'app_label': app_label,
-               'columns': model_ct.model_class().get_colums_wizard(),
                'module_name': module_name}
-    html = render_to_string('autoreports/inc.render_model.html', context)
-    return HttpResponse(html)
+    return HttpResponse(render_to_string('autoreports/inc.render_model.html',
+                                         context),
+                        mimetype='text/html')
 
 
-def reports_ajax_advanced_options(request):
-    from autoreports.forms import ReportFilterForm
-    from autoreports.models import modelform_factory
-    option = request.GET.get('option')
+def reports_ajax_fields_options(request):
     module_name = request.GET.get('module_name')
     app_label = request.GET.get('app_label')
+    is_admin = request.GET.get('is_admin')
     ct = ContentType.objects.get(model=module_name,
                                  app_label=app_label)
-    prefix = request.GET.get('prefix')
     model = ct.model_class()
-    form = modelform_factory(model=model, form=ReportFilterForm)(fields=(prefix, ), is_admin=True, use_subfix=False)
-    current_widget = form.fields.values()[0].widget
-    current_widget__class_name = current_widget.__class__.__name__
-    if option == 'change_widget':
-        if isinstance(current_widget, widgets.DateTimeInput):
-            choices = (('DateTimeInput', 'DateTimeInput'), )
-        elif isinstance(current_widget, widgets.Textarea):
-            choices = (('TextInput', 'TextInput'), )
-        elif isinstance(current_widget, widgets.CheckboxInput) or \
-            isinstance(current_widget, widgets.RadioInput) or \
-            isinstance(current_widget, widgets.Select) or \
-            isinstance(current_widget, widgets.SelectMultiple):
-            choices = (('CheckboxSelectMultiple', 'CheckboxSelectMultiple'),
-                       ('Select', 'Select'),
-                       ('RadioSelect', 'RadioSelect'),
-                       ('SelectMultiple', 'SelectMultiple'), )
-        else:
-            choices = tuple()
-        choices = tuple(set(((current_widget__class_name, current_widget__class_name), ) + choices + (('HiddenInput', 'HiddenInput', ), )))
-        return HttpResponse(simplejson.dumps(choices))
-    elif option == 'default_value':
-        widget_selected = request.GET.get('widget_selected')
-        if current_widget__class_name != widget_selected and widget_selected != 'HiddenInput':
-            field = change_widget(widget_selected, form.fields.values()[0])
-            form.fields[form.fields.keys()[0]] = field
-        return HttpResponse(form.__unicode__())
+    field_name = request.GET.get('field')
+    prefix, field_name_parsed = parsed_field_name(field_name)
+    field_name_x, field = get_field_by_name(model, field_name_parsed)
+    adaptor = get_adaptor(field)(model, field, field_name)
+    wizard = adaptor.get_form(is_admin)
+    wizard_render = adaptor.render(wizard, model, is_admin)
+    return HttpResponse(wizard_render,
+                        mimetype='text/html')
 
 
 def reports_view(request, app_name, model_name, fields=None,
@@ -129,6 +95,7 @@ def reports_view(request, app_name, model_name, fields=None,
                  model_admin=None, queryset=None,
                  report_to='csv'):
     class_model = models.get_model(app_name, model_name)
+    request = pre_procession_request(request, class_model)
     list_fields = fields
     formats = get_available_formats()
 
@@ -145,43 +112,18 @@ def reports_view(request, app_name, model_name, fields=None,
     list_headers = list_headers
     if not list_headers:
         list_headers = translate_fields(list_fields, class_model)
-    name = "%s-%s.%s" %(app_name, model_name, formats[report_to]['file_extension'])
+    name = "%s-%s.%s" % (app_name, model_name, formats[report_to]['file_extension'])
 
     qsm = QueryStringManager(request)
     object_list = queryset and queryset.filter(filters) or class_model.objects.filter(filters)
+
     filters = qsm.get_filters()
+
     for field in EXCLUDE_FIELDS:
         if field in filters:
             del filters[field]
-    filters_clean = {}
 
-    def convert_filter_datetime(key, endswith, filters, filters_clean):
-        key_new = key.replace(endswith, '')
-        value_new = '%s %s' %(filters.get('%s_0' % key_new, ''),
-                                filters.get('%s_1' % key_new, ''))
-        value_new = value_new.strip()
-        return (key_new, value_new)
-
-    choices_date_end = [choice_date_end for choice_date_end, choice_date_text in CHOICES_DATE]
-
-    for key, value in filters.items():
-        if value in [[u''], u'']:
-            continue
-        elif key.endswith('_0') or key.endswith('_1'):
-            key_new = key
-            value_new = filters[key]
-            for choice_date_end in choices_date_end:
-                if key.endswith('__%s_0' % choice_date_end):
-                    key_new, value_new = convert_filter_datetime(key, '_0', filters, filters_clean)
-                    break
-                elif key.endswith('__%s_1' % choice_date_end):
-                    key_new, value_new = convert_filter_datetime(key, '_1', filters, filters_clean)
-                    break
-            filters_clean[key_new] = value_new
-        else:
-            filters_clean[key] = filters[key]
-
-    object_list = object_list.filter(**filters_clean)
+    object_list = object_list.filter(**filters).distinct()
     if ordering:
         object_list = object_list.order_by(*ordering)
 
@@ -192,26 +134,12 @@ def reports_view(request, app_name, model_name, fields=None,
     return response
 
 
-def model_admin_reports_view(request, app_name, model_name, model_admin_module,
-                             model_admin_class_name, fields=None, list_headers=None,
-                             ordering=None, filters=Q()):
-    model_admin = getattr(__import__(model_admin_module, {}, {}, model_admin_class_name), model_admin_class_name)
-    fields = fields or getattr(model_admin, 'report_display_fields', None) or getattr(model_admin, 'list_display', None)
-    if request.GET.get('q', None):
-        request = copy(request)
-        class_model = ContentType.objects.get(app_label=app_name, model=model_name).model_class()
-        filters = set_filters_search_fields(model_admin, request, filters, class_model)
-    return reports_view(request, app_name, model_name, fields=fields,
-                        list_headers=list_headers, ordering=ordering,
-                        model_admin=model_admin, filters=filters)
-
-
 def set_filters_search_fields(model_admin, request, filters, class_model):
     query = request.GET.get('q', '')
     lang = get_language()
     for field_name in model_admin.search_fields:
         if (field_name, class_model) and is_translate_field(field_name, class_model):
-            field_name = '%s_%s' %(field_name, lang)
+            field_name = '%s_%s' % (field_name, lang)
         filters = filters | Q(**{'%s__icontains' % field_name: query})
     return filters
 
@@ -222,7 +150,7 @@ def translate_fields(list_fields, class_model):
     for field_name in list_fields:
         try:
             if is_translate_field(field_name, class_model):
-                field_name = '%s_%s' %(field_name, lang)
+                field_name = '%s_%s' % (field_name, lang)
             field = class_model._meta.get_field_by_name(field_name)
             field_unicode = unicode(field[0].verbose_name)
         except models.fields.FieldDoesNotExist:
@@ -242,38 +170,10 @@ def is_translate_field(field_name, class_model):
 
 def csv_head(filename, columns, delimiter=','):
     response = HttpResponse(mimetype='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=%s' %filename
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
     writer = csv.writer(response, delimiter=delimiter)
     writer.writerow(columns)
     return response
-
-
-def get_row_and_field_name(row, field_name):
-    field_name_reverse = '%s_set' % field_name
-    if '__' not in field_name:
-        if hasattr(row, field_name):
-            return [(row, field_name)]
-        elif hasattr(row, field_name_reverse):
-            return [(row, field_name_reverse)]
-        return [(row, field_name)]
-    elif hasattr(row, field_name) and callable(getattr(row, field_name)):
-        return [(row, field_name)]
-
-    field_split = field_name.split('__')
-    row = getattr(row, field_split[0], None) or getattr(row, '%s_set' % field_split[0], None)
-    if getattr(row, 'all', None):
-        row = row.all()
-    if not row:
-        return [(None, field_name)]
-    field_name = '__'.join(field_split[1:])
-    try:
-        iter(row)
-        row_field_name = []
-        for r in row:
-            row_field_name.extend(get_row_and_field_name(r, field_name))
-        return row_field_name
-    except TypeError:
-        return get_row_and_field_name(row, field_name)
 
 
 def csv_body(response, class_model, object_list, list_fields, delimiter=','):
@@ -282,12 +182,11 @@ def csv_body(response, class_model, object_list, list_fields, delimiter=','):
         oldlocale = locale.setlocale(locale.LC_ALL, 'es_ES.UTF8')
     except locale.Error:
         oldlocale = locale.setlocale(locale.LC_ALL, 'es_ES')
-    lang = get_language()
-    for row_old in object_list:
+    for obj in object_list:
         values = []
         for field_name in list_fields:
-            row_field_name = get_row_and_field_name(row_old, field_name)
-            value = get_value(row_field_name, class_model, lang)
+            value = get_value_from_object(obj, field_name)
+            value = get_parser_value(value)
             values.append(value)
         writer.writerow(values)
     value = response.content
@@ -295,50 +194,3 @@ def csv_body(response, class_model, object_list, list_fields, delimiter=','):
     value = value.replace('\n\n', '\n')
     response.content = value
     locale.setlocale(locale.LC_ALL, oldlocale)
-
-
-def get_value(row_field_name, class_model, lang):
-    v = ''
-    for row, field_name in row_field_name:
-        if row and hasattr(row, field_name):
-            try:
-                if isinstance(row, models.Model):
-                    class_model = row
-                if is_translate_field(field_name, class_model):
-                    field_name = '%s_%s' %(field_name, lang)
-                field = class_model._meta.get_field(field_name)
-            except models.FieldDoesNotExist:
-                field = None
-            if isinstance(field, models.ForeignKey) and isinstance(getattr(row, field_name, None), int):
-                name_aplication = field.rel.to._meta.app_label
-                model_foreing = field.rel.to._meta.module_name
-                class_model_foreing = models.get_model(name_aplication, model_foreing)
-                value = class_model_foreing.objects.get(id=row.id)
-            elif getattr(field, 'choices', None):
-                value = getattr(row, field_name)
-                choices_dict = dict(field.choices)
-                value = unicode(choices_dict.get(value, value))
-            else:
-                value = getattr(row, field_name)
-                if hasattr(value, '__call__'):
-                    value = value()
-                elif getattr(value, 'all', None):
-                    value = ', '.join([getattr(val, '__unicode__', getattr(val, '__repr__'))() for val in value.all()])
-            if isinstance(value, unicode):
-                value = value.encode('utf8')
-            if isinstance(value, str):
-                while value.endswith('\n'):
-                    value = value[:-1]
-            elif isinstance(value, (float, Decimal)):
-                value = locale.format('%.3f', value)
-        else:
-            value = ''
-        if field_name in CHANGE_VALUE:
-            value = CHANGE_VALUE[field_name](value)
-        if v:
-            v = '%s, %s' %(v, value)
-        elif isinstance(value, models.Model):
-            v = unicode(value).encode('utf-8')
-        else:
-            v = value
-    return v

@@ -13,14 +13,28 @@
  # You should have received a copy of the GNU Lesser General Public License
  # along with this programe.  If not, see <http://www.gnu.org/licenses/>.
 
+from copy import copy
+import collections
+
+from django.conf import settings
+from django.contrib.admin.views.main import (ALL_VAR, ORDER_VAR, ORDER_TYPE_VAR, PAGE_VAR, SEARCH_VAR,
+                                             TO_FIELD_VAR, IS_POPUP_VAR, ERROR_FLAG)
 from django.contrib.sites.models import Site
-from django.db.models import fields as django_fields
+from django.db import models
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
-from django.utils.translation import ugettext
+from django.http import QueryDict
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import get_language
 
 from autoreports import csv_to_excel
+
+try:
+    import transmeta
+    IMPORTABLE_TRANSMETA = True
+except ImportError:
+    IMPORTABLE_TRANSMETA = False
+
 
 EXPORT_FORMATS = {
     'csv': {
@@ -33,40 +47,68 @@ EXPORT_FORMATS = {
     },
 }
 
+EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox',
+                  ALL_VAR, ORDER_VAR, ORDER_TYPE_VAR, PAGE_VAR, SEARCH_VAR,
+                  TO_FIELD_VAR, IS_POPUP_VAR, ERROR_FLAG)
 
-CHOICES_ALL = (('icontains', ugettext('Contains')),
-               ('lt', ugettext('less than')),
-               ('lte', ugettext('less equal than')),
-               ('gt', ugettext('great than')),
-               ('gte', ugettext('great equal than')),
-               ('iexact', ugettext('exact')),
-               ('id__in', ugettext('exact related')), )
-
-
-CHOICES_STR = (('icontains', ugettext('Contains')),
-               ('iexact', ugettext('exact')), )
-
-
-CHOICES_RELATED = (('', ugettext('Contains')), )
-
-
-CHOICES_INTEGER = (('lt', ugettext('less than')),
-                   ('lte', ugettext('less equal than')),
-                   ('gt', ugettext('great than')),
-                   ('gte', ugettext('great equal than')),
-                   ('iexact', ugettext('exact')), )
-
-
-CHOICES_DATE = CHOICES_INTEGER
-
-
-CHOICES_BOOLEAN = (('', ugettext('Select')), )
+SEPARATED_FIELD = "$__$"
 
 
 def add_domain(value):
     site = Site.objects.get_current()
-    value = 'http://%s%s' %(site.domain, value)
+    value = 'http://%s%s' % (site.domain, value)
     return value
+
+
+def pre_procession_request(request, model, lite=False):
+
+    class RequestFake(object):
+
+        def __init__(self, request, model, lite=False, *args, **kwargs):
+            self.__dict__ = copy(request.__dict__)
+            for att in dir(request):
+                if att.startswith('__'):
+                    continue
+                setattr(self, att, getattr(request, att))
+            new_get = None
+            try:
+                path = request.get_full_path()
+                path_index = path.index("?")
+                new_get = QueryDict(path[path_index + 1:], mutable=True)
+                if lite:
+                    self.GET = QueryDict("")
+                    return
+                for key, value in new_get.items():
+                    if not key.startswith('__'):
+                        key_with_filter = '__'.join(key.split('__')[:-1])
+                        try:
+                            model_field, field = get_field_from_model(model, key_with_filter, separated_field='__')
+                            adaptor = get_adaptor(field)
+                            adaptor = adaptor(model, field, key_with_filter)
+                            value, new_get = adaptor.change_value(value, key, new_get)
+                            if key in new_get:
+                                new_get[key] = value
+                        except models.FieldDoesNotExist:
+                            del new_get[key]
+                self.GET = new_get
+            except ValueError:
+                self.GET = QueryDict("")
+
+        def convert_filter_datetime(self, key, endswith, filters, filters_clean):
+            key_new = key.replace(endswith, '')
+            value_new = '%s %s' % (filters.get('%s_0' % key_new, ''),
+                                    filters.get('%s_1' % key_new, ''))
+            value_new = value_new.strip()
+            return (key_new, value_new)
+
+    if isinstance(request, RequestFake):
+        return request
+
+    request_fake = RequestFake(request, model, lite)
+    request_fake.get_full_path = request.get_full_path
+    if request_fake.GET != request.GET:
+        return request_fake
+    return request
 
 
 def get_available_formats():
@@ -78,73 +120,172 @@ def get_available_formats():
     return formats
 
 
-def change_widget(widget_selected, field):
-    widget_class = getattr(__import__('django.forms.widgets', {}, {}, True), widget_selected, None)
-    widget_dict = field.widget.__dict__
-    choices = getattr(field.widget, 'choices', None)
-    field.widget = widget_class()
-    field.widget.choices = choices
-    field.widget.__dict__ = widget_dict
-    return field
+def get_adaptors_from_report(report):
+    model = report.content_type.model_class()
+    adaptors = []
+    if not report.options:
+        return adaptors
+    for field_name, ops in report.options.items():
+        model_field, field = get_field_from_model(model, field_name)
+        adaptors.append(get_adaptor(field)(model, field, field_name, instance=report))
+    return adaptors
+
+
+def get_adaptor(field):
+    from autoreports.fields import (BaseReportField, TextFieldReportField,
+                                    ChoicesFieldReportField, FuncField,
+                                    DateFieldReportField, DateTimeFieldReportField,
+                                    BooleanFieldReportField, RelatedReverseField,
+                                    ForeingKeyReportField, M2MReportField,
+                                    NumberFieldReportField, AutoNumberFieldReportField)
+    if isinstance(field, models.CharField) or isinstance(field, models.TextField):
+        if getattr(field, 'choices', None):
+            return ChoicesFieldReportField
+        else:
+            return TextFieldReportField
+    elif isinstance(field, models.AutoField):
+        return AutoNumberFieldReportField
+    elif isinstance(field, models.IntegerField) or isinstance(field, models.FloatField):
+        return NumberFieldReportField
+    elif isinstance(field, models.BooleanField):
+        return BooleanFieldReportField
+    elif isinstance(field, models.DateTimeField):
+        return DateTimeFieldReportField
+    elif isinstance(field, models.DateField):
+        return DateFieldReportField
+    elif isinstance(field, models.ForeignKey):
+        return ForeingKeyReportField
+    elif isinstance(field, models.ManyToManyField):
+        return M2MReportField
+    elif isinstance(field, RelatedObject):
+        return RelatedReverseField
+    elif callable(field):
+        return FuncField
+    return BaseReportField
+
+
+def get_model_of_relation(field):
+    if isinstance(field, models.ManyToManyField) or isinstance(field, models.ForeignKey):
+        return field.rel.to
+    return field.model
+
+
+def parsed_field_name(field_name, separated_field=SEPARATED_FIELD):
+    field_name_list = field_name.split(separated_field)
+    field_name = field_name_list[-1]
+    prefix = field_name_list[:-1]
+    return (prefix, field_name)
+
+
+def get_field_by_name(model, field_name, checked_transmeta=True):
+    try:
+        return (field_name, model._meta.get_field_by_name(field_name)[0])
+    except models.FieldDoesNotExist, e:
+        func = getattr(model, field_name, None)
+        if func and callable(func):
+            return (field_name, func)
+        if checked_transmeta and has_transmeta():
+            field_name = transmeta.get_real_fieldname(field_name, get_language())
+            return get_field_by_name(model,
+                                     field_name,
+                                     checked_transmeta=False)
+        raise e
+
+
+def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD):
+    if not obj:
+        return obj
+    prefix, field_name_parsed = parsed_field_name(field_name, separated_field)
+    model = type(obj)
+    if not prefix:
+        field_name, field = get_field_by_name(model, field_name)
+        adaptor = get_adaptor(field)(model, field, field_name)
+        return adaptor.get_value(obj, field_name)
+    else:
+        field_name_current = prefix[0]
+        field_name_new = prefix[1:]
+        field_name_new.append(field_name_parsed)
+        field_name, field = get_field_by_name(model, prefix[0])
+        adaptor = get_adaptor(field)(model, field, field_name)
+        value = adaptor.get_value(obj, field_name_current)
+        if isinstance(value, collections.Iterable):
+            value_list = []
+            for obj in value:
+                val = get_value_from_object(obj,
+                                            separated_field.join(field_name_new))
+                if isinstance(val, basestring):
+                    if not val in value_list:
+                        value_list.append(val)
+                elif isinstance(val, collections.Iterable):
+                    for v in val:
+                        if v and not v in value_list:
+                            value_list.append(v)
+                else:
+                    if not val in value_list:
+                        value_list.append(val)
+            return value_list
+        else:
+            return get_value_from_object(value,
+                                         separated_field.join(field_name_new))
+
+
+def get_parser_value(value):
+    if not value:
+        return unicode(value)
+    elif isinstance(value, basestring):
+        return value.encode('utf8')
+    elif isinstance(value, models.Model):
+        return unicode(value)
+    elif isinstance(value, collections.Iterable):
+        return ', '.join([get_parser_value(item) for item in value])
+    return get_parser_value(unicode(value))
+
+
+def get_field_from_model(model, field_name, separated_field=SEPARATED_FIELD):
+    prefix, field_name_parsed = parsed_field_name(field_name, separated_field)
+    if not prefix:
+        field_name, field = get_field_by_name(model, field_name)
+        return (model, field)
+    else:
+        field_name_new = prefix[1:]
+        field_name_new.append(field_name_parsed)
+        field_name, field = get_field_by_name(model, prefix[0])
+        return get_field_from_model(get_model_of_relation(field),
+                                    separated_field.join(field_name_new))
+
+
+def get_all_field_names(model):
+    field_list = model._meta.get_all_field_names()
+    if has_transmeta():
+        field_list = pre_processing_transmeta_fields(model, field_list)
+    return field_list
 
 
 def get_fields_from_model(model, prefix=None):
-    model_fields = []
-    objs_related = []
-    fields_related = []
+    fields = []
     funcs = []
     prefix = prefix or ''
-    for field_name in model._meta.get_all_field_names():
-        field = model._meta.get_field_by_name(field_name)[0]
-        field_type = 'normal'
-        field_name_prefix = field_name
-        if prefix:
-            field_name_prefix = '%s__%s' % (prefix, field_name)
-
-        if field_name.endswith('_ptr'):
-            continue
-        elif isinstance(field, RelatedObject):
-            #import ipdb; ipdb.set_trace()
-            field_type = prefix and '%s__objs_related' % prefix or 'objs_related'
-            objs_related.append({'field': field,
-                                 'name': field_name_prefix,
-                                 'choices': CHOICES_RELATED,
-                                 'type': field_type,
-                                 'verbose_name': field_name,
-                                 'app_label': field.model._meta.app_label,
-                                 'module_name': field.model._meta.module_name,
-                                 'help_text': '',
-                                 'advanced_options': True, })
-        elif isinstance(field, RelatedField):
-            field_type = prefix and '%s__fields_related' % prefix or 'fields_related'
-            fields_related.append({'field': field,
-                                  'name': field_name_prefix,
-                                  'choices': CHOICES_RELATED,
-                                  'type': field_type,
-                                  'verbose_name': field.verbose_name,
-                                  'app_label': field.rel.to._meta.app_label,
-                                  'module_name': field.rel.to._meta.module_name,
-                                  'help_text': field.help_text,
-                                  'advanced_options': True, })
+    field_list = get_all_field_names(model)
+    for field_name in field_list:
+        field_name_model, field = get_field_by_name(model, field_name)
+        field_name_prefix = prefix and '%s%s%s' % (prefix, SEPARATED_FIELD, field_name) or field_name
+        adaptor = get_adaptor(field)(model, field, field_name_prefix)
+        field_data = {'name': field_name,
+                        'name_prefix': field_name_prefix}
+        if isinstance(field, (RelatedObject, RelatedField)):
+            field_data['verbose_name'] = adaptor.get_verbose_name()
+            model_relation = get_model_of_relation(field)
+            field_data['collapsible'] = {'app_label': model_relation._meta.app_label,
+                                         'module_name': model_relation._meta.module_name}
         else:
-            field_type = prefix and '%s__model_fields' % prefix or 'model_fields'
-            field_dict = {'field': field,
-                          'name': field_name_prefix,
-                          'type': field_type,
-                          'verbose_name': field.verbose_name,
-                          'help_text': field.help_text,
-                          'advanced_options': True, }
-            if isinstance(field, django_fields.CharField) or isinstance(field, django_fields.TextField):
-                field_dict['choices'] = CHOICES_STR
-            elif isinstance(field, django_fields.IntegerField):
-                field_dict['choices'] = CHOICES_INTEGER
-            elif isinstance(field, django_fields.BooleanField):
-                field_dict['choices'] = CHOICES_BOOLEAN
-            elif isinstance(field, django_fields.DateField):
-                field_dict['choices'] = CHOICES_DATE
-            else:
-                field_dict['choices'] = CHOICES_ALL
-            model_fields.append(field_dict)
+            field_data['verbose_name'] = adaptor.get_verbose_name()
+            field_data['collapsible'] = False
+        fields.append(field_data)
+
+    autoreports_functions = getattr(settings, 'AUTOREPORTS_FUNCTIONS', False)
+
+    if not autoreports_functions:
+        return (fields, None)
 
     for func_name in dir(model):
         if not callable(getattr(model, func_name, None)):
@@ -153,17 +294,37 @@ def get_fields_from_model(model, prefix=None):
         if not getattr(func, 'im_func', None):
             continue
         func_num_args = func.im_func.func_code.co_argcount
-        func_type = prefix and '%s__func' % prefix or 'func'
         func_name_prefix = func_name
         if prefix:
-            func_name_prefix = '%s__%s' % (prefix, func_name)
+            func_name_prefix = '%s%s%s' % (prefix, SEPARATED_FIELD, func_name)
         if func_num_args == 1 or len(func.im_func.func_dict) == func_num_args:
-            funcs.append({'field': func,
-                          'name': func_name_prefix,
-                          'type': func_type,
+            funcs.append({'name': func_name_prefix,
                           'verbose_name': func_name,
-                          'help_text': func.im_func.func_doc,
-                          'choices': None,
-                          'advanced_options': False,
+                          'collapsible': False
                           })
-    return (model_fields, objs_related, fields_related, funcs)
+    return (fields, funcs)
+
+
+def has_transmeta():
+    if IMPORTABLE_TRANSMETA and 'transmeta' in settings.INSTALLED_APPS:
+        return True
+    return False
+
+
+def pre_processing_transmeta_fields(model, field_list):
+    translatable_fields = transmeta.get_all_translatable_fields(model)
+    for translatable_field in translatable_fields:
+        fields_to_remove = transmeta.get_real_fieldname_in_each_language(translatable_field)
+        for i, field_to_remove in enumerate(fields_to_remove):
+            if i == 0:
+                index = field_list.index(field_to_remove)
+                field_list[index] = translatable_field
+            else:
+                field_list.remove(field_to_remove)
+    return field_list
+
+
+def transmeta_field_name(field, field_name):
+    if not field_name.endswith(field.name) and has_transmeta():
+        return transmeta.get_real_fieldname(field_name, get_language())
+    return field_name

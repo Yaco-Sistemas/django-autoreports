@@ -7,14 +7,12 @@
     <link href="{{ MEDIA_URL }}autoreports/admin_autoreports.css" type="text/css" rel="stylesheet">
 {% endblock %}
 
-{% block contentformname %}
-    {{ form_top }}
+{% block is_admin %}
+    var is_admin = true;
 {% endblock %}
 
-{% block contentformmodel %}
-    <fieldset class="module aligned">
-        {% include "autoreports/inc.render_model.html" %}
-    </fieldset>
+{% block contentformname %}
+    {{ form_top }}
 {% endblock %}
 
 {% block breadcrumbs %}{% if not is_popup %}
@@ -22,6 +20,10 @@
      <a href="../../../../">{% trans "Home" %}</a> &rsaquo;
      <a href="../../../">{% trans opts.app_label.title %}</a> &rsaquo;
      <a href="../../">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
-     {% trans "Wizard Report" %}
+     {% if report %}
+        {{ report }}
+     {% else %}
+        {% trans "Wizard Report" %}
+     {% endif %}
 </div>
 {% endif %}{% endblock %}

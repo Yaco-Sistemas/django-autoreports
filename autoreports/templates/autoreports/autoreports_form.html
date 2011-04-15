@@ -20,9 +20,11 @@
 </div>
 {% endblock %}
 
-
 {% block content %}
     <h1>{% trans "Report Form" %}</h1>
+    {% if django_query %}
+        <pre>{{ django_query }}</pre>
+    {% endif %}
     <div id="content-main">
         <form action="." method="get" class="report">
             {% block contentform %}
@@ -33,7 +35,9 @@
             {% for format, format_data in export_formats.items %}
                 <input type="submit" name="__report_{{ format }}" class="default" value="{{ format_data.label }}"/>
             {% endfor %}
+                <input type="submit" name="__filter{{ format }}" class="default" value="{% trans "Filter" %}"/>
             </div>
         </form>
     </div>
+    {{ block.super }}
 {% endblock %}

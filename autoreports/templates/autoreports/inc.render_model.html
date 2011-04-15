@@ -1,57 +1,34 @@
 {% load i18n %}
-<table style="margin-left: {{ level_margin }}px" class="level_margin_{{ level_margin }}">
-    <tr>
-        {% if columns.fields %}
-            <th><span>{% trans "Field" %}</span></th>
-        {% endif %}
-        {% if columns.filter %}
-            <th><span>{% trans "Select filter" %}</span></th>
-        {% endif %}
-        {% if columns.display %}
-            <th><span>{% trans "Select display" %}</span></th>
-        {% endif %}
-        {% if columns.help_text %}
-            <th><span>{% trans "Help text" %}</span></th>
-        {% endif %}
-        {% if columns.advanced_options %}
-            <th><span>{% trans "Advanced Options" %}</span></th>
-        {% endif %}
-    </tr>
-    {% if model_fields %}
-        <tr id="{% if prefix %}{{ prefix }}__{% endif %}model_fields" class="title">
-            <td colspan="5"> <h3><a href="#">{% trans "Model fields"%}</a></h3>
-                {% with model_fields as fields %}
-                    {% include "autoreports/inc.render_fields.html" %}
-                {% endwith %}
-            </td>
-        </tr>
 
-    {% endif %}
-    {% if fields_related %}
-        <tr id="{% if prefix %}{{ prefix }}__{% endif %}fields_related" class="title">
-            <td colspan="5"> <h3><a href="#">{% trans "Related fields"%}</a></h3>
-                {% with fields_related as fields %}
-                    {% include "autoreports/inc.render_fields.html" %}
-                {% endwith %}
-            </td>
-        </tr>
-    {% endif %}
-    {% if objs_related %}
-        <tr id="{% if prefix %}{{ prefix }}__{% endif %}objs_related" class="title">
-            <td colspan="5"> <h3><a href="#">{% trans "Reverse fields"%}</a></h3>
-                {% with objs_related as fields %}
-                    {% include "autoreports/inc.render_fields.html" %}
-                {% endwith %}
-            </td>
-        </tr>
-    {% endif %}
+<div class="model">
+    <div style="display:none" class="config">
+        <span class="app_label" style="display:none">{{ app_label }}</span>
+        <span class="module_name" style="display:none">{{ module_name }}</span>
+    </div>
+    <h4>{% trans "Fields" %}</h4>
+    <ul class="fields">
+        {% for field in fields %}
+            <li class="draggable{% if field.collapsible %} collapsible{% endif %}">
+                {% if field.collapsible %}
+                    <span class="collapsible"> + 
+                        <span class="app_label" style="display:none">{{ field.collapsible.app_label }}</span>
+                        <span class="module_name" style="display:none">{{ field.collapsible.module_name }}</span>
+                    </span>{% endif %}
+                <a href="#{{ field.name_prefix }}" class="{% if field.collapsible %}collapsible{% endif %}">
+                    {{ field.verbose_name }}
+                    ({{ field.name }}) 
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
     {% if funcs %}
-        <tr id="{% if prefix %}{{ prefix }}__{% endif %}func" class="title">
-            <td colspan="5"> <h3><a href="#">{% trans "Functions"%}</a></h3>
-                {% with funcs as fields %}
-                    {% include "autoreports/inc.render_fields.html" %}
-                {% endwith %}
-            </td>
-        </tr>
+    <h4>{% trans "Functions" %}</h4>
+    <ul class="functions">
+        {% for func in funcs %}
+            <li class="draggable {{ func.name }}">
+                <a href="#{{ func.name }}">{{ func.verbose_name }}</a>
+            </li>
+        {% endfor %}
+    </ul>
     {% endif %}
-</table>
+</div>

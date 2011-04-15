@@ -26,6 +26,15 @@
 {% endif %}{% endblock %}
 
 {% block contentform %}
+    {% if report %}
+    <ul class="object-tools">
+        <li>
+            <a href="../../report/wizard/{{ report.id }}/">
+            {% blocktrans with cl.opts.verbose_name as name %}Edit {{ report }}{% endblocktrans %}
+            </a>
+        </li>
+    </ul>
+    {% endif %}
     {{ form_filter.as_django_admin }}
     {{ form_display.as_django_admin }}
 {% endblock %}

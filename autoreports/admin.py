@@ -15,23 +15,24 @@
 
 from django import template
 from django.conf import settings
+from django.conf.urls.defaults import patterns, url
 from django.contrib import admin
 from django.contrib.admin.options import IncorrectLookupParameters
-from django.contrib.admin.views.main import ChangeList, ERROR_FLAG
+from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.templatetags.admin_list import result_headers
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.utils import simplejson
-from django.utils.translation import ugettext_lazy as _
+from django.utils.functional import update_wrapper
 
 from autoreports.api import ReportApi
-from autoreports.forms import ReportNameAdminForm, ReportNameForm
+from autoreports.main import AutoReportChangeList
 from autoreports.models import Report
-from autoreports.utils import get_fields_from_model
+from autoreports.utils import get_fields_from_model, get_adaptors_from_report
 from autoreports.views import reports_view, set_filters_search_fields
+from autoreports.wizards import ReportNameAdminForm, ReportNameForm, ModelFieldForm, WizardField
 
 
 class ReportAdmin(ReportApi):
@@ -39,8 +40,6 @@ class ReportAdmin(ReportApi):
     is_admin = True
 
     def get_urls(self):
-        from django.conf.urls.defaults import patterns, url
-        from django.utils.functional import update_wrapper
 
         def wrap(view):
 
@@ -58,6 +57,9 @@ class ReportAdmin(ReportApi):
                 url(r'^report/wizard/$',
                       wrap(self.report_wizard),
                       name='%s_%s_report_wizard' % info),
+                url(r'^report/wizard/(?P<report_id>\d+)/$',
+                      wrap(self.report_edit_wizard),
+                      name='%s_%s_report_edit_wizard' % info),
                 url(r'^report/advance/$',
                       wrap(self.report_advance),
                       name='%s_%s_report_advance' % info),
@@ -70,40 +72,36 @@ class ReportAdmin(ReportApi):
         ) + urlpatterns
         return urlpatterns
 
-    def report_list(self, request, extra_context=None):
-        "The 'change list' admin view for this model."
-        model = Report
+    def _get_change_list(self, request, model, cl_options):
+        list_display = cl_options.get('list_display', self.list_display)
+        if 'action_checkbox' in list_display:
+            list_display = list_display[1:]
+        list_display_links = cl_options.get('list_display_links', self.list_display_links)
+        list_filter = cl_options.get('list_filter', tuple())
+        date_hierarchy = cl_options.get('date_hierarchy', self.date_hierarchy)
+        search_fields = cl_options.get('search_fields', tuple())
+        list_select_related = cl_options.get('list_select_related', self.list_select_related)
+        list_per_page = cl_options.get('list_per_page', self.list_per_page)
+        list_editable = cl_options.get('list_editable', self.list_editable)
+        prefix_url = cl_options.get('prefix_url', '../../')
+        model_admin = self
+        if model != self.model:
+            model_admin = admin.site._registry[model]
+        try:
+            return AutoReportChangeList(request, model, prefix_url, list_display, list_display_links, list_filter,
+                date_hierarchy, search_fields, list_select_related, list_per_page, model_admin)
+        except TypeError:
+            cl = AutoReportChangeList(request, model, prefix_url, list_display, list_display_links, list_filter,
+                date_hierarchy, search_fields, list_select_related, list_per_page, list_editable, model_admin)
+            cl.formset = None
+            return cl
+
+    def _get_extra_context_fake_change_list(self, model, request, extra_context=None, cl_options=None):
+        extra_context = extra_context or {}
         opts = model._meta
         app_label = opts.app_label
-
-        try:
-            list_display = ('name', )
-            list_display_links = tuple()
-            list_filter = tuple()
-            date_hierarchy = None
-            search_fields = tuple()
-            list_select_related = False
-            list_per_page = 100
-            try:
-                cl = ChangeList(request, Report, list_display, list_display_links, list_filter,
-                    date_hierarchy, search_fields, list_select_related, list_per_page, admin.site._registry[model])
-            except TypeError:
-                cl = ChangeList(request, Report, list_display, list_display_links, list_filter,
-                    date_hierarchy, search_fields, list_select_related, list_per_page, (), admin.site._registry[model])
-                cl.formset = None
-        except IncorrectLookupParameters:
-            # Wacky lookup parameters were given, so redirect to the main
-            # changelist page, without parameters, and pass an 'invalid=1'
-            # parameter via the query string. If wacky parameters were given and
-            # the 'invalid=1' parameter was already in the query string, something
-            # is screwed up with the database, so display an error page.
-            if ERROR_FLAG in request.GET.keys():
-                return render_to_response('admin/invalid_setup.html', {'title': _('Database error')})
-            return HttpResponseRedirect(request.path + '?' + ERROR_FLAG + '=1')
-
-        content_type = ContentType.objects.get_for_model(self.model)
-        cl.query_set = cl.query_set.filter(content_type=content_type)
-        cl.result_list = cl.query_set._clone()
+        cl_options = cl_options or {}
+        cl = self._get_change_list(request, model, cl_options)
         context = {
             'title': cl.title,
             'is_popup': cl.is_popup,
@@ -114,68 +112,110 @@ class ReportAdmin(ReportApi):
             'opts': self.opts,
         }
         context.update(extra_context or {})
+        return context
+
+    def report_list(self, request, extra_context=None):
+        "The 'change list' admin view for this model."
+        cl_options = {}
+        cl_options['list_display'] = ('name', )
+        cl_options['list_display_links'] = tuple()
+        cl_options['list_filter'] = tuple()
+        cl_options['date_hierarchy'] = None
+        cl_options['search_fields'] = tuple()
+        cl_options['list_select_related'] = False
+        cl_options['list_per_page'] = 100
+        cl_options['prefix_url'] = 'wizard/'
+        model = Report
+        context = self._get_extra_context_fake_change_list(model, request, extra_context, cl_options)
+        opts = model._meta
+        app_label = opts.app_label
+        content_type = ContentType.objects.get_for_model(self.model)
+        cl = context['cl']
+        cl.query_set = cl.query_set.filter(content_type=content_type)
+        cl.result_list = cl.query_set._clone()
+        context['cl'] = cl
         return render_to_response(getattr(self, 'change_report_list_template', None) or [
-            'autoreports/%s/%s/report_adminlist.html' % (app_label, opts.object_name.lower()),
-            'autoreports/%s/report_adminlist.html' % app_label,
-            'autoreports/report_adminlist.html',
+            'autoreports/admin/%s/%s/report_list.html' % (app_label, opts.object_name.lower()),
+            'autoreports/admin/%s/report_list.html' % app_label,
+            'autoreports/admin/report_list.html',
         ], context, context_instance=template.RequestContext(request))
 
-    def report_wizard(self, request, queryset=None, template_name='autoreports/autoreports_adminwizard.html', extra_context=None):
-        content_type = ContentType.objects.get_for_model(self.model)
-        return self.report_api_wizard(request, queryset=queryset,
+    def report_wizard(self, request,
+                            template_name='autoreports/admin/autoreports_wizard.html',
+                            extra_context=None,
+                            model=Report,
+                            form_top_class=ReportNameAdminForm,
+                            content_type=None):
+        return self.report_api_wizard(request,
                                       template_name=template_name,
                                       extra_context=extra_context,
-                                      model=Report,
-                                      form_top_class=ReportNameAdminForm,
+                                      model=model,
+                                      form_top_class=form_top_class,
+                                      content_type=content_type)
+
+    def report_edit_wizard(self, request, report_id,
+                          template_name='autoreports/admin/autoreports_wizard.html',
+                          extra_context=None,
+                          model=Report,
+                          form_top_class=ReportNameAdminForm,
+                          content_type=None):
+        report = model.objects.get(pk=report_id)
+        return self.report_api_wizard(request,
+                                      report=report,
+                                      template_name=template_name,
+                                      extra_context=extra_context,
+                                      model=model,
+                                      form_top_class=form_top_class,
                                       content_type=content_type)
 
     def report_api_wizard(self, request,
-                          queryset=None, template_name='autoreports/autoreports_adminwizard.html',
+                          report=None,
+                          template_name='autoreports/admin/autoreports_wizard.html',
                           extra_context=None,
-                          model_to_report=None,
                           model=Report,
                           form_top_class=ReportNameForm,
+                          model_to_export=None,
                           content_type=None):
+        model_to_export = model_to_export or self.model
+        content_type = content_type or ContentType.objects.get_for_model(model_to_export)
         data = None
+        adaptors = []
+        form_top_initial = {}
         if request.method == 'POST':
             data = request.POST
-        form_top = form_top_class(data=data)
+        elif report:
+            adaptors = get_adaptors_from_report(report)
+            form_top_initial['prefixes'] = ", ".join([unicode(adaptor.get_form().prefix) for adaptor in adaptors])
+        form_top = form_top_class(instance=report, data=data, initial=form_top_initial)
+        options = {}
         if form_top.is_valid():
-            report_filter_fields = []
-            report_display_fields = []
-            report_advance = {}
-            for check, value in request.POST.items():
-                if check.startswith('display_'):
-                    report_display_fields.append(check.replace('display_', ''))
-                elif check.startswith('filter_'):
-                    report_filter_fields.append(check.replace('filter_', ''))
-                elif check.startswith('widget_'):
-                    field_name = check.replace('widget_', '')
-                    report_advance[field_name] = {'widget': value}
-                    default_value = request.POST.get(field_name, None)
-                    if default_value:
-                        report_advance[field_name]['default'] = default_value
-            name = form_top.cleaned_data.get('name', None) or 'report of %s' % unicode(self.model._meta.verbose_name)
-            report = self._create_report(model, name, report_display_fields,
-                                        report_filter_fields, content_type,
-                                        report_advance)
-            return HttpResponseRedirect('../%s' % report.id)
-        model_fields, objs_related, fields_related, funcs = get_fields_from_model(content_type.model_class())
-        context = {'add': True,
+            for prefix in form_top.cleaned_data.get('prefixes', []):
+                model_field_form = ModelFieldForm(data=data,
+                                                  prefix=prefix)
+                if model_field_form.is_valid():
+                    field_name = model_field_form.cleaned_data.get('field_name')
+                    adaptor = model_field_form.get_adaptor()
+                    wizardfield = WizardField(data=data,
+                                              autoreport_field=adaptor,
+                                              prefix=prefix)
+                    if wizardfield.is_valid():
+                        options[field_name] = wizardfield.cleaned_data
+            name = form_top.cleaned_data.get('name', None) or 'report of %s' % unicode(model_to_export._meta.verbose_name)
+            report_created = self._create_report(model, content_type, name, options, form_top.instance)
+            redirect = report_created.get_redirect_wizard(report)
+            return HttpResponseRedirect(redirect)
+        fields, funcs = get_fields_from_model(content_type.model_class())
+        context = {'add': report is None,
+                   'report': report,
                    'opts': self.opts,
-                   'model_fields': model_fields,
-                   'fields_related': fields_related,
-                   'objs_related': objs_related,
+                   'fields': fields,
                    'funcs': funcs,
-                   'columns': model.get_colums_wizard(),
                    'ADMIN_MEDIA_PREFIX': settings.ADMIN_MEDIA_PREFIX,
                    'template_base': "admin/base_site.html",
-                   'level_margin': 0,
                    'form_top': form_top,
                    'module_name': content_type.model,
                    'app_label': content_type.app_label,
-                   'model__module_name': model._meta.module_name,
-                   'model__app_label': model._meta.app_label,
+                   'adaptors': adaptors,
                   }
         extra_context = extra_context or {}
         context.update(extra_context)
@@ -183,23 +223,25 @@ class ReportAdmin(ReportApi):
                                   context,
                                   context_instance=RequestContext(request))
 
-    def _create_report(self, model, name, report_display_fields, report_filter_fields, content_type, report_advance):
-        report = model.objects.create(name=name,
-                                      report_display_fields=', '.join(report_display_fields),
-                                      report_filter_fields=', '.join(report_filter_fields),
-                                      content_type=content_type,
-                                      advanced_options=simplejson.dumps(report_advance))
+    def _create_report(self, model, content_type, name, options, report=None):
+        report.content_type = content_type
+        report.name = name
+        report.options = options
+        report.save()
         return report
 
-    def report_view(self, request, report_id, queryset=None, template_name='autoreports/autoreports_adminform.html', extra_context=None):
+    def report_view(self, request, report_id, queryset=None, template_name='autoreports/admin/autoreports_form.html', extra_context=None):
         report = Report.objects.get(pk=report_id)
         return self.report_advance(request, report=report, queryset=queryset, template_name=template_name, extra_context=extra_context)
 
-    def report_advance(self, request, report=None, queryset=None, template_name='autoreports/autoreports_adminform.html', extra_context=None):
+    def report_advance(self, request, report=None, queryset=None, template_name='autoreports/admin/autoreports_form.html', extra_context=None):
         context = {'opts': self.opts,
-                   'template_base': "admin/base_site.html",
+                   'template_base': "admin/change_list.html",
                     }
         extra_context = extra_context or {}
+        context = self._get_extra_context_fake_change_list(self.model, request, context)
+        cl = context.get('cl', None)
+        context['_adavanced_filters'] = cl and cl._adavanced_filters or None
         context.update(extra_context)
         return super(ReportAdmin, self).report(request, report, self.queryset(request), template_name, context)
 

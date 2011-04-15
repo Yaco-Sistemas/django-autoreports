@@ -31,7 +31,7 @@ except:
 register = template.Library()
 
 
-def autoreports_admin(context):
+def autoreports_admin_tools(context):
     context_tag = {}
     changelist = context.get('cl', None)
     model_admin = getattr(changelist, 'model_admin', None)
@@ -50,11 +50,11 @@ def autoreports_admin(context):
                 query_string_extra = ''
             else:
                 query_string_extra = '&'
-            query_string_extra += '%s=%s' %(related_field, object_owner.pk)
+            query_string_extra += '%s=%s' % (related_field, object_owner.pk)
             query_string += query_string_extra
         context_tag['query_string'] = query_string
     return context_tag
-autoreports_admin = register.inclusion_tag('autoreports/autoreports_admin.html', takes_context=True)(autoreports_admin)
+autoreports_admin = register.inclusion_tag('autoreports/admin/autoreports_tools.html', takes_context=True)(autoreports_admin_tools)
 
 
 def _object_owner(request, model_admin):
@@ -73,7 +73,7 @@ class IsSonOfReportAdminNode(template.Node):
         self.var_name = var_name
 
     def render(self, context):
-        admin =__import__(context.get('module', ''), {}, {}, context.get('class_name', ''))
+        admin = __import__(context.get('module', ''), {}, {}, context.get('class_name', ''))
         model_admin = getattr(admin, context.get('class_name', ''), None)
         context[self.var_name] = issubclass(model_admin, ReportAdmin)
         return ''

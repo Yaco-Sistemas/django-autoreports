@@ -7,130 +7,109 @@
 
 {% block extrahead %}
     {{ block.super }}
-    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery-1.4.2.min.js"></script>
+    {% include "autoreports/inc.jslibraries.html" %}
     <script type="text/javascript">
         (function($){
             $(document).ready(function () {
-                $("tr.fields").fadeOut();
-                $("div.advanced_options").fadeOut();
-
-                function title_click(){
-                    var id = $(this).parent().parent().parent().attr("id");
-                    if (!$("tr." + id).hasClass("visibility")) {
-                        $("tr." + id).fadeIn();
-                        $("tr." + id).addClass("visibility");
-                    }
-                    else {
-                        $("tr." + id).fadeOut();
-                        $("tr." + id).removeClass("visibility");
-                    }
-                    return false;
-                }
-
-                function field_click(){
-                    var link = $(this);
-                    var tr_link = link.parent().parent().parent();
-                    var model = link.attr("href").split("/");
-                    var prefix = link.parent().attr("for").replace('id_', '');
-                    var url = "{% url reports_ajax_fields %}" + "?app_label=" + model[0] + "&module_name=" + model[1] + "&prefix=" + prefix + "&model__module_name=" + "{{ model__module_name }}" + "&model__app_label=" + "{{ model__app_label }}" ;
-                    if (tr_link.next().find("table").length == 0) {
-                        $.ajax({
-                            url: url,
-                            type: "GET",
-                            async: true,
-                            dataType: 'text/html',
-                            success: function(response){
-                                tr_link.after('<tr class="visibility"><td colspan="5">' + response + '</tr></tr>');
-                                tr_link.next().find("table tr.fields").fadeOut();
-                                tr_link.next().find("table tr.title h3 a").click(title_click);
-                                tr_link.next().find("table tr.fields label a").click(field_click);
-                                tr_link.next().find("table tr.fields a.change_widget").click(change_widget_click);
-                                tr_link.next().find("table tr.fields a.default_value").click(default_value_click);
-                            }
-                        });
-                    }
-                    else {
-                        if (tr_link.next().hasClass("visibility")){
-                            tr_link.next().fadeOut();
-                            tr_link.next().removeClass("visibility");
-                        }
-                        else {
-                            tr_link.next().fadeIn();
-                            tr_link.next().addClass("visibility");
-                        }
-                    }
-                    return false;
-                }
-
-                function advanced_options_click(){
-                    var advanced_options = $(this).parent().find("div.advanced_options");
-                    if (!advanced_options.hasClass("visibility")) {
-                        advanced_options.fadeIn();
-                        advanced_options.addClass("visibility");
-                    }
-                    else {
-                        advanced_options.fadeOut();
-                        advanced_options.removeClass("visibility");
-                    }
-                    return false;
-                }
-
-
-                function change_widget_click(){
-                    var link = $(this);
-                    var app_label = $("div.app_label").html();
-                    var module_name = $("div.module_name").html();
-                    var prefix = link.attr("href").replace('#', '');
-                    var url = "{% url reports_ajax_advanced_options %}" + "?app_label=" + app_label + "&module_name=" + module_name + "&prefix=" + prefix + "&option=change_widget";;
-                    $.ajax({
-                        url: url,
-                        type: "GET",
-                        async: true,
-                        dataType: 'text/html',
-                        success: function(response){
-                            link.fadeOut();
-                            response = eval("(" + response + ")");
-                            var advanced_options = "<label>{% trans 'Choose a widget' %}</label>"
-                            advanced_options += "<select name='widget_"+ prefix +"' id='id_widget_"+ prefix +"'>";
-                            $.map(response, function(elem, i){
-                                advanced_options += "<option value='"+ elem[0] +"'>"+ elem[1] +"</option>"
-                            });
-                            advanced_options += "</select>";
-                            link.parent().find("div.change_widget").html(advanced_options);
-                        }
+                {% block is_admin %}
+                    var is_admin = false;
+                {% endblock %}
+                function initialWizard() {
+                    $(".draggable a").draggable({
+                        revert: "invalid"
                     });
-                    return false;
+                    $(".droppable").droppable({
+                        drop: requestFieldSet,
+                    });
                 }
 
-                function default_value_click(){
-                    var link = $(this);
-                    var app_label = $("div.app_label").html();
-                    var module_name = $("div.module_name").html();
-                    var prefix = link.attr("href").replace('#', '');
-                    var widget = $("select#id_widget_"+prefix);
-                    if (widget.length == 1) {
-                        var widget_selected = widget.find("option:selected").val();
-                        var url = "{% url reports_ajax_advanced_options %}" + "?app_label=" + app_label + "&module_name=" + module_name + "&prefix=" + prefix + "&widget_selected=" + widget_selected + "&option=default_value";
-                        $.ajax({
+                $(".collapsable h2").live("click", function() {
+                    var fieldset = $(this).parent();
+                    if($(this).hasClass("hidden")) {
+                        fieldset.find("div").fadeIn();
+                        $(this).removeClass("hidden");
+                    } else {
+                        fieldset.find("div").fadeOut();
+                        $(this).addClass("hidden");
+                    }
+                });
+
+                $(".removeAdaptor").live("click", function() {
+                    $(this).parent().remove();
+                });
+
+                initialWizard();
+
+                function requestFieldSet(event, ui) {
+                    $("fieldset.collapsable").find("h2").not("h2.hidden").click();
+                    var field = ui.draggable.parent();
+                    var field_label = field.find("a");
+                    field_label.fadeOut(function() {
+                        field_label.addClass("using");
+                        field_label.css("top", "0px");
+                        field_label.css("left", "0px");
+                    });
+                    setTimeout(function(){
+                        field_label.fadeIn();
+                    }, 2000);
+
+                    var field_name = field.find("a").attr("href").replace("#", "");
+                    var config = field.parents("div.model").children().first()
+                    var module_name = config.find(".module_name").html();
+                    var app_label = config.find(".app_label").html();
+                    var url = "{% url reports_ajax_fields_options %}" + "?app_label=" + app_label + "&module_name=" + module_name;
+                    url+= "&field=" + field_name + "&is_admin=" + is_admin;
+                    $.ajax({
                             url: url,
                             type: "GET",
                             async: true,
-                            dataType: 'text/html',
+                            dataType: 'html',
                             success: function(response){
-                                link.parent().find("div.default_value").html(response);
-                            }
+                                var wizard = $(".wizard");
+                                var prefix = $(response).find("input").attr("id").replace("id_", "").split("-")[0];
+                                var old_prefixes = $("#id_prefixes").val();
+                                if (!old_prefixes) {
+                                    $("#id_prefixes").val(prefix);
+                                } else {
+                                    $("#id_prefixes").val(old_prefixes + ", "  + prefix);
+                                }
+                                $(response).insertAfter(wizard.find("h2:first"));
+                                initialWizard();
+                            },
+                    });
+                }
+
+                $("li.collapsible span").live("click", function() {
+                    var field = $(this).parent();
+                    if(field.find("div.model").length == 0){
+                        var field_name = field.find("a").attr("href").replace("#", "");
+                        var module_name = $(this).find(".module_name").html();
+                        var app_label = $(this).find(".app_label").html();
+                        var url = "{% url reports_ajax_fields %}" + "?app_label=" + app_label + "&module_name=" + module_name; 
+                        url+= "&field=" + field_name + "&is_admin=" + is_admin;
+                        $.ajax({
+                                url: url,
+                                type: "GET",
+                                async: true,
+                                dataType: 'html',
+                                success: function(response){
+                                    var field_html = field.html();
+                                    field.html(field_html + response);
+                                    initialWizard();
+                                },
                         });
-                    }
-                    else {
-                        alert("{% trans 'First Select a widget'%}");
+                    } else {
+                        var child = field.find("div.model");
+                        if (!child.hasClass("hidden")){
+                            field.find("div.model").fadeOut();
+                            child.addClass("hidden");
+                        }else {
+                            field.find("div.model").fadeIn();
+                            child.removeClass("hidden");
+                        }
                     }
                     return false;
-                }
-                $("tr.title h3 a").click(title_click);
-                $("tr.fields label a").click(field_click);
-                $("a.advanced_options").click(advanced_options_click);
-                $("tr.fields a.change_widget").click(change_widget_click);
-                $("tr.fields a.default_value").click(default_value_click);
+                });
             });
         })(jQuery);
     </script>
@@ -140,15 +119,23 @@
 <div class="breadcrumbs">
      <a href="../../">{% trans "Home" %}</a> &rsaquo;
      <a href="../">{% trans "Reports" %}</a> &rsaquo;
-     {% trans "Wizard Report" %}
+     {% if report %}
+        {{ report }}
+     {% else %}
+        {% trans "Wizard Report" %}
+     {% endif %}
 </div>
 {% endblock %}
+
 
 {% block content %}
     {% block contenttitle %}
         <h1>{% trans "Wizard Form" %}</h1>
     {% endblock %}
-    <div id="content-main">
+    <div class="leftsidebar">
+        {% include "autoreports/inc.render_model.html" %}
+    </div>
+    <div id="content-main" class="rightsidebar {% block contentextraclass %} {% endblock %}">
         <form action="." method="post" class="report">
             <div class="app_label" style="display:none">{{ app_label }}</div>
             <div class="module_name" style="display:none">{{ module_name }}</div>
@@ -157,7 +144,12 @@
                     {{ form_top.as_p }}
                 {% endblock %}
                 {% block contentformmodel %}
-                    {% include "autoreports/inc.render_model.html" %}
+                    <div class="droppable wizard">
+                        <h2>{% trans "Drop the fields here" %}</h2>
+                    </div>
+                    {% for adaptor in adaptors %}
+                        {{ adaptor.render_instance|safe }}
+                    {% endfor %}
                 {% endblock %}
             {% endblock %}
             {% block submitwrapper %}

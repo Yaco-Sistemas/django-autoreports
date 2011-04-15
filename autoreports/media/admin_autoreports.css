@@ -33,3 +33,63 @@ form.report table th span {
 form.report table td {
     overflow: hidden;
 }
+
+div.leftsidebar {
+    float: left;
+    width: 20%;
+}
+
+div.rightsidebar,
+div.rightsidebar#content-main {
+    width: 80%;
+}
+
+div.leftsidebar div.model {
+    padding-left: 0.7em;
+    border: 1px dashed #5B80B2;
+}
+
+div.leftsidebar ul.fields,
+div.leftsidebar ul.functions {
+    padding-left: 0.4em;
+}
+
+ul li a.collapsible {
+    font-weight: bold;
+    clear: both;
+}
+
+ul li.collapsible span.collapsible {
+    cursor: pointer;
+}
+
+ul li a.using {
+    opacity: 0.5;
+}
+
+form.report .collapsable h2:hover {
+    cursor: pointer;
+}
+
+form.report div.prefixes {
+    display: none;
+}
+
+.adaptor h2.removeAdaptor {
+    background: url("../img/admin/default-bg.gif") repeat-x scroll left top #7CA0C7;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    margin: 0;
+    padding: 2px 5px 3px;
+    text-align: left;
+}
+.adaptor h2.removeAdaptor:hover {
+    cursor: pointer;
+}
+
+.adaptor .collapsable {
+    margin-top: 5px;
+    margin-bottom: 0px;
+}
+
