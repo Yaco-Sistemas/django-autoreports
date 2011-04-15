@@ -60,7 +60,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
 
 setup(
     name="django-autoreports",
-    version="0.6.1",
+    version="0.7.0",
     install_requires=parse_requirements('requirements.txt'),
     dependency_links=parse_dependency_links('requirements.txt'),
     author="Yaco Sistemas S.L.",
@@ -74,7 +74,7 @@ setup(
         'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
     ],
     license="LGPL 3",
-    keywords="django autoreports reports csv xls excel",
+    keywords="django autoreports reports csv xls excel wizard filters change list",
     packages=find_packages('.'),
     include_package_data=True,
     zip_safe=False,
