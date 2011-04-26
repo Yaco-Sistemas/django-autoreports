@@ -235,7 +235,7 @@ def get_parser_value(value):
     elif isinstance(value, basestring):
         return value.encode('utf8')
     elif isinstance(value, models.Model):
-        return unicode(value)
+        return unicode(value).encode('utf8')
     elif isinstance(value, collections.Iterable):
         return ', '.join([get_parser_value(item) for item in value])
     return get_parser_value(unicode(value))
