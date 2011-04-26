@@ -177,6 +177,13 @@ class TextFieldReportField(BaseReportField):
 
 class ChoicesFieldReportField(TextFieldReportField):
 
+    def get_value(self, obj, field_name=None):
+        field_name = field_name or self.field_name_parsed
+        choice_display = getattr(obj, 'get_%s_display' % field_name, None)
+        if choice_display and callable(choice_display):
+            return choice_display()
+        return super(ChoicesFieldReportField, self).get_value(obj, field_name)
+
     def get_filter_default(self):
         return 'exact'
 
