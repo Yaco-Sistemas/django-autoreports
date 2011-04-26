@@ -92,7 +92,7 @@ class BaseReportField(object):
             label = self.get_label_to_opts(opts)
             if label:
                 field.label = label
-            elif help_text:
+            if help_text:
                 field.help_text = help_text
             if display:
                 fields_form_display[self.field_name] = copy(field)

@@ -101,7 +101,7 @@ class WizardField(forms.Form):
             if autoreports_i18n:
                 for lang_code, lang_text in settings.LANGUAGES:
                     label = 'label_%s' % lang_code
-                    help_text = 'label_%s' % lang_code
+                    help_text = 'help_text_%s' % lang_code
                     self.fields[label].initial = field_options.get(label, '')
                     self.fields[help_text].initial = field_options.get(help_text, '')
             else:
