@@ -1,3 +1,12 @@
+0.7.1
+=====
+
+* Removed error in the name of functions
+* Removed error in the values of choices
+* Removed error help_text and label with AUTOREPORTS_I18N = True
+* [Wizard] Removed error of the field to inheritance
+* [Wizard] Removed error of the field tree infinite
+
 0.7.0
 =====
 
