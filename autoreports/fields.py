@@ -109,6 +109,8 @@ class BaseReportField(object):
         else:
             if default:
                 fil = self.get_filter_default()
+                if fil is None:
+                    return (fields_form_filter, fields_form_display)
                 field_name_subfix = "%s__%s" % (self.field_name_parsed, fil)
                 if autoreports_subfix:
                     field_label = u"%s (%s)" % (field.label, dict(self.get_filters())[fil])
@@ -409,6 +411,9 @@ class FuncField(BaseReportField):
 
     def _treatment_transmeta(self):
         pass
+
+    def get_filter_default(self):
+        return None
 
     @classmethod
     def get_filters(self):
