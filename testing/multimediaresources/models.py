@@ -51,7 +51,13 @@ class SetResource(models.Model):
                             max_length=100, null=False, blank=False)
     resources = models.ManyToManyField(Resource, verbose_name=_(u'Resources'))
 
+    def __unicode__(self):
+        return self.name
+
 
 class ComputerResource(models.Model):
     url = models.URLField(verbose_name=_(u'url'), null=False, blank=False)
     resource = models.ForeignKey(Resource, verbose_name=_(u'Resource'), null=False, blank=False)
+
+    def __unicode__(self):
+        return "%s --> %s" % (self.resource, self.url)
