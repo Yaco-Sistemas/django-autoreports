@@ -390,7 +390,7 @@ class FuncField(BaseReportField):
     def get_field_form(self, opts=None, default=True,
                        fields_form_filter=None, fields_form_display=None):
         label = opts and self.get_label_to_opts(opts) or getattr(self.field, 'short_description', None) or self.field_name
-        help_text = opts and opts.get('help_text', None) or self.get_help_text_to_opts(opts) or ''
+        help_text = opts and self.get_help_text_to_opts(opts) or ''
 
         class FakeFuncFieldForm(object):
 
