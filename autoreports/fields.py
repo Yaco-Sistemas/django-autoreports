@@ -76,11 +76,14 @@ class BaseReportField(object):
         lang = get_language()
         return opts.get('help_text_%s' % lang, None)
 
+    def get_basic_field_form(self, form, field_name):
+        return form.base_fields[field_name]
+
     def get_field_form(self, opts=None, default=True,
                        fields_form_filter=None, fields_form_display=None):
         prefix, field_name = parsed_field_name(self.field_name)
         form = modelform_factory(self.model, form=BaseReportForm, fields=[field_name])
-        field = form.base_fields[field_name]
+        field = self.get_basic_field_form(form, field_name)
         autoreports_initial = getattr(settings, 'AUTOREPORTS_INITIAL', True)
         autoreports_subfix = getattr(settings, 'AUTOREPORTS_SUBFIX', True)
         if not autoreports_initial:
@@ -225,18 +228,8 @@ class NumberFieldReportField(BaseReportField):
 
 class AutoNumberFieldReportField(NumberFieldReportField):
 
-    def get_field_form(self, opts=None, default=True,
-                       fields_form_filter=None, fields_form_display=None):
-        def formfield():
-            return IntegerField()
-        origin_formfield = self.field.formfield
-        self.field.formfield = formfield
-        fields_form_filter, fields_form_display = super(AutoNumberFieldReportField, self).get_field_form(opts,
-                                                                                                         default,
-                                                                                                         fields_form_filter,
-                                                                                                         fields_form_display)
-        self.field.formfield = origin_formfield
-        return (fields_form_filter, fields_form_display)
+    def get_basic_field_form(self, form, field_name):
+        return IntegerField()
 
 
 class DateFieldReportField(BaseReportField):
