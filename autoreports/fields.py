@@ -4,7 +4,7 @@ from copy import copy
 
 from django.conf import settings
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminDateWidget
-from django.forms import Select, TextInput, IntegerField, ValidationError
+from django.forms import Select, TextInput, IntegerField, ValidationError, ModelMultipleChoiceField
 from django.utils.translation import get_language
 from django.utils.translation import ugettext as _
 
@@ -229,7 +229,7 @@ class NumberFieldReportField(BaseReportField):
 class AutoNumberFieldReportField(NumberFieldReportField):
 
     def get_basic_field_form(self, form, field_name):
-        return IntegerField()
+        return IntegerField(label=self.get_verbose_name())
 
 
 class DateFieldReportField(BaseReportField):
@@ -342,6 +342,10 @@ class RelatedReportField(BaseReportField):
 
 class RelatedReverseField(RelatedReportField):
 
+    def get_basic_field_form(self, form, field_name):
+        return ModelMultipleChoiceField(label=self.get_verbose_name(),
+                                        queryset=self.field.model.objects.all())
+
     def get_value(self, obj, field_name=None):
         field_name = self.field.get_accessor_name()
         return self._post_preccessing_get_value(getattr(obj, field_name).all())
@@ -380,20 +384,15 @@ class FuncField(BaseReportField):
     from autoreports.utils import add_domain
     middleware_value = {'get_absolute_url': add_domain}
 
-    def get_field_form(self, opts=None, default=True,
-                       fields_form_filter=None, fields_form_display=None):
-        label = opts and self.get_label_to_opts(opts) or getattr(self.field, 'short_description', None) or self.field_name
-        help_text = opts and self.get_help_text_to_opts(opts) or ''
-
+    def get_basic_field_form(self, form, field_name):
         class FakeFuncFieldForm(object):
 
             def __init__(self, label, help_text):
                 self.label = label
                 self.help_text = help_text
 
-        fields_form_display[self.field_name] = FakeFuncFieldForm(label=label,
-                                                            help_text=help_text)
-        return (fields_form_filter, fields_form_display)
+        return FakeFuncFieldForm(label=self.get_verbose_name(),
+                                        help_text=self.get_help_text())
 
     def get_verbose_name(self):
         prefix, field_name = parsed_field_name(self.field_name)
