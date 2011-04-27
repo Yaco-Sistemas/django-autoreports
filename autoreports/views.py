@@ -60,9 +60,13 @@ def reports_ajax_fields(request):
     app_label = request.GET.get('app_label')
     ct = ContentType.objects.get(model=module_name,
                                  app_label=app_label)
+    ignore_module_name = request.GET.get('ignore_module_name')
+    ignore_app_label = request.GET.get('ignore_app_label')
+    ignore_models = _get_ignore_models(ignore_app_label, ignore_module_name)
     field = request.GET.get('field')
     model = ct.model_class()
-    fields, funcs = get_fields_from_model(model, field)
+    fields, funcs = get_fields_from_model(model, field,
+                                          ignore_models=ignore_models)
     context = {'fields': fields,
                'funcs': funcs,
                'app_label': app_label,
@@ -70,6 +74,21 @@ def reports_ajax_fields(request):
     return HttpResponse(render_to_string('autoreports/inc.render_model.html',
                                          context),
                         mimetype='text/html')
+
+
+def _get_ignore_models(ignore_app_label, ignore_module_name):
+    if not ignore_app_label or not ignore_module_name:
+        return []
+    app_labels = ignore_app_label.split("/")
+    module_names = ignore_module_name.split("/")
+    if len(app_labels) != len(module_names):
+        return []
+    ignore_list = []
+    for i, app_label in enumerate(app_labels):
+        ct = ContentType.objects.get(model=module_names[i],
+                                     app_label=app_label)
+        ignore_list.append(ct.model_class())
+    return ignore_list
 
 
 def reports_ajax_fields_options(request):

@@ -85,8 +85,20 @@
                         var field_name = field.find("a").attr("href").replace("#", "");
                         var module_name = $(this).find(".module_name").html();
                         var app_label = $(this).find(".app_label").html();
-                        var url = "{% url reports_ajax_fields %}" + "?app_label=" + app_label + "&module_name=" + module_name; 
-                        url+= "&field=" + field_name + "&is_admin=" + is_admin;
+                        var ignore_app_label = "";
+                        var ignore_module_name = "";
+                        var separated = "";
+                        $.map($(this).parents().find(".config"), function (config, i) {
+                            if (i > 0) {
+                                separated = "/";
+                            }
+                            ignore_app_label += separated + $(config).find(".app_label").html();
+                            ignore_module_name += separated + $(config).find(".module_name").html();
+                        });
+
+                        var url = "{% url reports_ajax_fields %}" + "?app_label=" + app_label + "&module_name=" + module_name;
+                        url += "&field=" + field_name + "&is_admin=" + is_admin;
+                        url += "&ignore_app_label=" + ignore_app_label + "&ignore_module_name=" + ignore_module_name;
                         $.ajax({
                                 url: url,
                                 type: "GET",

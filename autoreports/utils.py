@@ -261,18 +261,22 @@ def get_all_field_names(model):
     return field_list
 
 
-def get_fields_from_model(model, prefix=None):
+def get_fields_from_model(model, prefix=None, ignore_models=None):
     fields = []
     funcs = []
     prefix = prefix or ''
+    ignore_models = ignore_models or []
     field_list = get_all_field_names(model)
     for field_name in field_list:
         field_name_model, field = get_field_by_name(model, field_name)
         field_name_prefix = prefix and '%s%s%s' % (prefix, SEPARATED_FIELD, field_name) or field_name
         adaptor = get_adaptor(field)(model, field, field_name_prefix)
         field_data = {'name': field_name,
-                        'name_prefix': field_name_prefix}
+                      'name_prefix': field_name_prefix}
         if isinstance(field, (RelatedObject, RelatedField)):
+            model_relation = get_model_of_relation(field)
+            if model_relation in ignore_models:
+                continue
             field_data['verbose_name'] = adaptor.get_verbose_name()
             model_relation = get_model_of_relation(field)
             field_data['collapsible'] = {'app_label': model_relation._meta.app_label,
