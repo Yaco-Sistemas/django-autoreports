@@ -70,6 +70,7 @@ class ReportAdmin(ReportApi):
                       wrap(self.report_view),
                       name='%s_%s_report_view' % info),
         ) + urlpatterns
+        print [p.name for p in urlpatterns]
         return urlpatterns
 
     def _get_change_list(self, request, model, cl_options):

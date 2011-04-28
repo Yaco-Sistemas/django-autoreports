@@ -173,6 +173,13 @@
         {% include "autoreports/inc.render_model.html" %}
     </div>
     <div id="content-main" class="rightsidebar {% block contentextraclass %} {% endblock %}">
+        {% block object-tools %}
+            {% if report %}
+                <ul class="object-tools">
+                    <li><a id="see-report" href="../../{{ report.id }}">{% trans "See report" %}</a></li>
+                </ul>
+            {% endif %}
+        {% endblock %}
         <form action="." method="post" class="report">
             <div class="app_label" style="display:none">{{ app_label }}</div>
             <div class="module_name" style="display:none">{{ module_name }}</div>
@@ -195,7 +202,11 @@
             {% block submitwrapper %}
             <div class="submit-row">
                 {% block submit %}
-                    <input type="submit" name="__report_wizard" class="default" value="{% trans "Create a report" %}"/>
+                    {% if report %}
+                        <input type="submit" name="__report_wizard" class="default" value="{% trans "Save report" %}"/>
+                    {% else %}
+                        <input type="submit" name="__report_wizard" class="default" value="{% trans "Create report" %}"/>
+                    {% endif %}
                 {% endblock %}
             </div>
             {% endblock %}
