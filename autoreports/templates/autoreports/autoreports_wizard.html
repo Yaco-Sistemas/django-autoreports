@@ -9,17 +9,33 @@
     {{ block.super }}
     {% include "autoreports/inc.jslibraries.html" %}
     <script type="text/javascript">
+        var dragged = Array();
         (function($){
             $(document).ready(function () {
                 {% block is_admin %}
                     var is_admin = false;
                 {% endblock %}
+
+                $(".droppable").css({height: $('.wizard').height() + 20 + 'px'});
+                $(".droppable h2").css({top: $(document).scrollTop() + 150 + 'px'});
+
                 function initialWizard() {
-                    $(".draggable a").draggable({
-                        revert: "invalid"
+                    // enable just for those which haven't been explicitly disabled
+                    $(".draggable a:not(.ui-draggable-disabled)").draggable({
+                        revert: "invalid",
+                        start: function(event, ui){
+                            $(".droppable").addClass('dropping');
+                            $(".droppable").css({height: $('.wizard').height() + 20 + 'px'});
+                            $(".droppable h2").css({top: $(document).scrollTop() + 150 + 'px'});
+                        },
+                        stop: function(event, ui){
+                            $(".droppable").removeClass('dropping');
+                        }
                     });
+
                     $(".droppable").droppable({
                         drop: requestFieldSet,
+                        hoverClass: 'dropping_hover',
                     });
                 }
 
@@ -36,6 +52,12 @@
 
                 $(".removeAdaptor").live("click", function() {
                     $(this).parent().remove();
+
+                    // enable dragging again
+                    var label_idx = $(this).attr('rel');
+                    dragged[label_idx].draggable.draggable("enable", 1);
+                    $(dragged[label_idx].draggable).removeClass("using");
+                    dragged[label_idx] = null;
                 });
 
                 initialWizard();
@@ -43,15 +65,9 @@
                 function requestFieldSet(event, ui) {
                     $("fieldset.collapsable").find("h2").not("h2.hidden").click();
                     var field = ui.draggable.parent();
-                    var field_label = field.find("a");
-                    field_label.fadeOut(function() {
-                        field_label.addClass("using");
-                        field_label.css("top", "0px");
-                        field_label.css("left", "0px");
-                    });
-                    setTimeout(function(){
-                        field_label.fadeIn();
-                    }, 2000);
+                    var field_label = $(field.find("a")[0]);
+                    field_label.css({top: "0px", left:"0px"});
+                    field_label.addClass('using');
 
                     var field_name = field.find("a").attr("href").replace("#", "");
                     var config = field.parents("div.model").children().first()
@@ -74,7 +90,15 @@
                                     $("#id_prefixes").val(old_prefixes + ", "  + prefix);
                                 }
                                 $(response).insertAfter(wizard.find("h2:first"));
+
+                                // avoid dragging the same element again
+                                var idx = dragged.push(ui);
+                                console.log(dragged);
+                                ui.draggable.draggable("disable", 1);
+                                $(wizard.find('.removeAdaptor')[0]).attr({rel:idx-1});
+
                                 initialWizard();
+                                $('.droppable').removeClass('void');
                             },
                     });
                 }
@@ -105,18 +129,20 @@
                                 async: true,
                                 dataType: 'html',
                                 success: function(response){
-                                    var field_html = field.html();
-                                    field.html(field_html + response);
+                                    var resp = $(response);
+                                    resp.css({display: 'none'});
+                                    field.append(resp);
+                                    resp.slideDown();
                                     initialWizard();
                                 },
                         });
                     } else {
                         var child = field.find("div.model");
                         if (!child.hasClass("hidden")){
-                            field.find("div.model").fadeOut();
+                            field.find("div.model").slideUp();
                             child.addClass("hidden");
                         }else {
-                            field.find("div.model").fadeIn();
+                            field.find("div.model").slideDown();
                             child.removeClass("hidden");
                         }
                     }
@@ -156,12 +182,15 @@
                     {{ form_top.as_p }}
                 {% endblock %}
                 {% block contentformmodel %}
-                    <div class="droppable wizard">
+                    <div class="droppable {% if not adaptors %}dropping void{% endif %}">
                         <h2>{% trans "Drop the fields here" %}</h2>
                     </div>
-                    {% for adaptor in adaptors %}
-                        {{ adaptor.render_instance|safe }}
-                    {% endfor %}
+                    <div class="wizard">
+                        <h2>{% trans "Selected fields" %}</h2>
+                        {% for adaptor in adaptors %}
+                            {{ adaptor.render_instance|safe }}
+                        {% endfor %}
+                    </div>
                 {% endblock %}
             {% endblock %}
             {% block submitwrapper %}
