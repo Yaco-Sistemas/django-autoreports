@@ -43,7 +43,6 @@ div.rightsidebar,
 div.rightsidebar#content-main {
     width: 79%;
     padding-left: 1%;
-/*    margin-left: 1%;*/
 }
 
 div.leftsidebar div.model {
@@ -56,8 +55,15 @@ div.leftsidebar ul.functions {
     padding-left: 0.4em;
 }
 
+ul li{
+    clear: left;
+}
+
 ul li a{
-    z-index: 2;
+    display: block;
+    float: left;
+    z-index: 3;
+    overflow: visible;
 }
 
 ul li a.ui-draggable{
@@ -70,11 +76,21 @@ ul li a.ui-draggable-disabled{
 
 ul li a.collapsible {
     font-weight: bold;
-    clear: both;
 }
 
 ul li.collapsible span.collapsible {
     cursor: pointer;
+    float: left;
+    display: block;
+    clear: left;
+}
+
+div.model{
+    clear: left;
+}
+
+div.model ul{
+    margin-bottom: 2em;
 }
 
 ul li a.using {
