@@ -35,7 +35,7 @@
 
                     $(".droppable").droppable({
                         drop: requestFieldSet,
-                        hoverClass: 'dropping_hover',
+                        hoverClass: 'dropping_hover'
                     });
                 }
 
@@ -93,13 +93,12 @@
 
                                 // avoid dragging the same element again
                                 var idx = dragged.push(ui);
-                                console.log(dragged);
                                 ui.draggable.draggable("disable", 1);
                                 $(wizard.find('.removeAdaptor')[0]).attr({rel:idx-1});
 
                                 initialWizard();
                                 $('.droppable').removeClass('void');
-                            },
+                            }
                     });
                 }
 
@@ -134,7 +133,7 @@
                                     field.append(resp);
                                     resp.slideDown();
                                     initialWizard();
-                                },
+                                }
                         });
                     } else {
                         var child = field.find("div.model");
