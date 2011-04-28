@@ -4,6 +4,7 @@ from copy import copy
 
 from django.conf import settings
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminDateWidget
+from django.db.models import ObjectDoesNotExist
 from django.forms import Select, TextInput, IntegerField, ValidationError, ModelMultipleChoiceField
 from django.utils.translation import get_language
 from django.utils.translation import ugettext as _
@@ -371,7 +372,10 @@ class ForeingKeyReportField(RelatedDirectField):
         return (value, request_get)
 
     def get_value(self, obj, field_name=None):
-        return super(RelatedDirectField, self).get_value(obj, field_name)
+        try:
+            return super(ForeingKeyReportField, self).get_value(obj, field_name)
+        except ObjectDoesNotExist:
+            return None  # Intigrity Error
 
 
 class M2MReportField(RelatedDirectField):

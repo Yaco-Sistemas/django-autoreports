@@ -198,9 +198,14 @@ def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD):
     prefix, field_name_parsed = parsed_field_name(field_name, separated_field)
     model = type(obj)
     if not prefix:
-        field_name, field = get_field_by_name(model, field_name)
-        adaptor = get_adaptor(field)(model, field, field_name)
-        return adaptor.get_value(obj, field_name)
+        try:
+            field_name, field = get_field_by_name(model, field_name)
+            adaptor = get_adaptor(field)(model, field, field_name)
+            return adaptor.get_value(obj, field_name)
+        except models.FieldDoesNotExist, e:
+            if hasattr(obj, field_name):
+                return getattr(obj, field_name, None)
+            raise e
     else:
         field_name_current = prefix[0]
         field_name_new = prefix[1:]
@@ -212,7 +217,8 @@ def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD):
             value_list = []
             for obj in value:
                 val = get_value_from_object(obj,
-                                            separated_field.join(field_name_new))
+                                            separated_field.join(field_name_new),
+                                            separated_field=separated_field)
                 if isinstance(val, basestring):
                     if not val in value_list:
                         value_list.append(val)
@@ -224,9 +230,12 @@ def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD):
                     if not val in value_list:
                         value_list.append(val)
             return value_list
-        else:
+        elif isinstance(value, models.Model):
             return get_value_from_object(value,
-                                         separated_field.join(field_name_new))
+                                         separated_field.join(field_name_new),
+                                         separated_field=separated_field)
+        elif value:
+            return adaptor.get_value(value, field_name_parsed)
 
 
 def get_parser_value(value):

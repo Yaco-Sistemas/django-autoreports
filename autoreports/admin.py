@@ -82,7 +82,7 @@ class ReportAdmin(ReportApi):
         search_fields = cl_options.get('search_fields', tuple())
         list_select_related = cl_options.get('list_select_related', self.list_select_related)
         list_per_page = cl_options.get('list_per_page', self.list_per_page)
-        list_editable = cl_options.get('list_editable', self.list_editable)
+        list_editable = cl_options.get('list_editable', getattr(self, 'list_editable', None))
         prefix_url = cl_options.get('prefix_url', '../../')
         model_admin = self
         if model != self.model:
