@@ -32,6 +32,9 @@
                 {{ form_display.as_p }}
             {% endblock %}
             <div class="submit-row">
+            {% if report %}
+                <p class="deletelink-box"><a href="#" onclick="confirmDelete();" class="deletelink">{% trans "Delete report" %}</a></p>
+            {% endif %}
             {% for format, format_data in export_formats.items %}
                 <input type="submit" name="__report_{{ format }}" class="default" value="{{ format_data.label }}"/>
             {% endfor %}

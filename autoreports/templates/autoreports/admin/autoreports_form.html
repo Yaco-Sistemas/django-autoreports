@@ -5,6 +5,12 @@
     {% url admin:jsi18n as jsi18nurl %}
     <script type="text/javascript" src="{{ jsi18nurl|default:"../../../../jsi18n/" }}"></script>
     <script type="text/javascript" src="{{ ADMIN_MEDIA_PREFIX }}js/core.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        function confirmDelete(){
+            if (confirm('{% trans "Are you sure you want to delete this report?" %}'))
+                document.location = '../{{ report.id }}/delete/';
+        }
+    </script>
     {{ block.super }}
     <link href="{{ ADMIN_MEDIA_PREFIX }}css/forms.css" type="text/css" rel="stylesheet">
     <link href="{{ MEDIA_URL }}autoreports/admin_autoreports.css" type="text/css" rel="stylesheet">

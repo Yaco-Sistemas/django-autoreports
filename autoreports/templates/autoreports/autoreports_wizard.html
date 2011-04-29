@@ -9,6 +9,13 @@
     {{ block.super }}
     {% include "autoreports/inc.jslibraries.html" %}
     <script type="text/javascript">
+        {% if report %}
+            function confirmDelete(){
+                if (confirm('{% trans "Are you sure you want to delete this report?" %}'))
+                    document.location = '../../{{ report.id }}/delete/';
+            }
+        {% endif %}
+
         var dragged = Array();
         (function($){
             $(document).ready(function () {
@@ -16,7 +23,10 @@
                     var is_admin = false;
                 {% endblock %}
 
-                $(".droppable").css({height: $('.wizard').height() + 20 + 'px'});
+                var wizard = $('.wizard');
+                $(".droppable").css({width: wizard.css('width'),
+                                     height: wizard.height() + 20 + 'px',
+                                     left: wizard.offset().left});
                 $(".droppable h2").css({top: $(document).scrollTop() + 150 + 'px'});
 
                 function initialWizard() {
@@ -25,7 +35,10 @@
                         revert: "invalid",
                         start: function(event, ui){
                             $(".droppable").addClass('dropping');
-                            $(".droppable").css({height: $('.wizard').height() + 20 + 'px'});
+                            var wizard = $('.wizard');
+                            $(".droppable").css({width: wizard.css('width'),
+                                                 height: wizard.height() + 20 + 'px',
+                                                 left: wizard.offset().left});
                             $(".droppable h2").css({top: $(document).scrollTop() + 150 + 'px'});
                         },
                         stop: function(event, ui){
@@ -203,6 +216,7 @@
             <div class="submit-row">
                 {% block submit %}
                     {% if report %}
+                        <p class="deletelink-box"><a href="#" onclick="confirmDelete();" class="deletelink">{% trans "Delete report" %}</a></p>
                         <input type="submit" name="__report_wizard" class="default" value="{% trans "Save report" %}"/>
                     {% else %}
                         <input type="submit" name="__report_wizard" class="default" value="{% trans "Create report" %}"/>

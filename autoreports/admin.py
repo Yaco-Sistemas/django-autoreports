@@ -23,7 +23,7 @@ from django.contrib.admin.templatetags.admin_list import result_headers
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.functional import update_wrapper
 
@@ -69,8 +69,10 @@ class ReportAdmin(ReportApi):
                 url(r'^report/(?P<report_id>\d+)/$',
                       wrap(self.report_view),
                       name='%s_%s_report_view' % info),
+                url(r'^report/(?P<report_id>\d+)/delete/$',
+                      self.delete_report,
+                      name='%s_%s_delete_report' % info),
         ) + urlpatterns
-        print [p.name for p in urlpatterns]
         return urlpatterns
 
     def _get_change_list(self, request, model, cl_options):
@@ -279,3 +281,9 @@ class ReportAdmin(ReportApi):
                             fields=fields, list_headers=None, ordering=ordering, filters=filters,
                             model_admin=self, queryset=queryset,
                             report_to='csv')
+
+    def delete_report(self, request, report_id):
+        report = get_object_or_404(Report, id=report_id)
+        report.delete()
+        info = self.model._meta.app_label, self.model._meta.module_name
+        return HttpResponseRedirect('/admin/%s/%s/' % info)
