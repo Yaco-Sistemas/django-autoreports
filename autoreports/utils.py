@@ -53,6 +53,14 @@ EXCLUDE_FIELDS = ('batchadmin_checkbox', 'action_checkbox',
 SEPARATED_FIELD = "$__$"
 
 
+def is_iterable(value):
+    try:
+        import collections
+        return isinstance(value, collections.Iterable)
+    except (ImportError, AttributeError):
+        return getattr(value, '__iter__', False) and True
+
+
 def add_domain(value):
     site = Site.objects.get_current()
     value = 'http://%s%s' % (site.domain, value)
@@ -212,7 +220,7 @@ def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD):
         field_name, field = get_field_by_name(model, prefix[0])
         adaptor = get_adaptor(field)(model, field, field_name)
         value = adaptor.get_value(obj, field_name_current)
-        if getattr(value, '__iter__', False):
+        if is_iterable(value):
             value_list = []
             for obj in value:
                 val = get_value_from_object(obj,
@@ -221,7 +229,7 @@ def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD):
                 if isinstance(val, basestring):
                     if not val in value_list:
                         value_list.append(val)
-                elif getattr(val, '__iter__', False):
+                elif is_iterable(val):
                     for v in val:
                         if v and not v in value_list:
                             value_list.append(v)
@@ -244,7 +252,7 @@ def get_parser_value(value):
         return value.encode('utf8')
     elif isinstance(value, models.Model):
         return unicode(value).encode('utf8')
-    elif getattr(value, '__iter__', False):
+    elif is_iterable(value):
         return ', '.join([get_parser_value(item) for item in value])
     return get_parser_value(unicode(value))
 
