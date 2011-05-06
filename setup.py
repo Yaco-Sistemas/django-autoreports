@@ -60,7 +60,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
 
 setup(
     name="django-autoreports",
-    version="0.7.2",
+    version="0.7.3",
     install_requires=parse_requirements('requirements.txt'),
     dependency_links=parse_dependency_links('requirements.txt'),
     author="Yaco Sistemas S.L.",
