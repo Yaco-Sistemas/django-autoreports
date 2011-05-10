@@ -1,3 +1,8 @@
+0.7.4
+=====
+* Fixed a error with nginx/uwsgi deployment
+
+
 0.7.3
 =====
 * More compatible with python 2.5
