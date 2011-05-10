@@ -13,8 +13,6 @@
  # You should have received a copy of the GNU Lesser General Public License
  # along with this programe.  If not, see <http://www.gnu.org/licenses/>.
 
-from copy import copy
-
 from django.conf import settings
 from django.contrib.admin.views.main import (ALL_VAR, ORDER_VAR, ORDER_TYPE_VAR, PAGE_VAR, SEARCH_VAR,
                                              TO_FIELD_VAR, IS_POPUP_VAR, ERROR_FLAG)
@@ -72,11 +70,6 @@ def pre_procession_request(request, model, lite=False):
     class RequestFake(object):
 
         def __init__(self, request, model, lite=False, *args, **kwargs):
-            self.__dict__ = copy(request.__dict__)
-            for att in dir(request):
-                if att.startswith('__'):
-                    continue
-                setattr(self, att, getattr(request, att))
             new_get = None
             try:
                 path = request.get_full_path()
