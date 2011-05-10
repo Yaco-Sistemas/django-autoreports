@@ -25,8 +25,7 @@
 
                 var wizard = $('.wizard');
                 $(".droppable").css({width: wizard.css('width'),
-                                     height: wizard.height() + 20 + 'px',
-                                     left: wizard.offset().left});
+                                     height: wizard.height() + 20 + 'px'});
                 $(".droppable h2").css({top: $(document).scrollTop() + 150 + 'px'});
 
                 function initialWizard() {
@@ -37,8 +36,7 @@
                             $(".droppable").addClass('dropping');
                             var wizard = $('.wizard');
                             $(".droppable").css({width: wizard.css('width'),
-                                                 height: wizard.height() + 20 + 'px',
-                                                 left: wizard.offset().left});
+                                                 height: wizard.height() + 20 + 'px'});
                             $(".droppable h2").css({top: $(document).scrollTop() + 150 + 'px'});
                         },
                         stop: function(event, ui){

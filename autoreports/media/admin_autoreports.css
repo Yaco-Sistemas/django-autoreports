@@ -55,30 +55,30 @@ div.leftsidebar ul.functions {
     padding-left: 0.4em;
 }
 
-ul li{
+div.leftsidebar ul li{
     clear: left;
 }
 
-ul li a{
+div.leftsidebar ul li a{
     display: block;
     float: left;
     z-index: 3;
     overflow: visible;
 }
 
-ul li a.ui-draggable{
+div.leftsidebar ul li a.ui-draggable{
     cursor: move;
 }
 
-ul li a.ui-draggable-disabled{
+div.leftsidebar ul li a.ui-draggable-disabled{
     cursor: default;
 }
 
-ul li a.collapsible {
+div.leftsidebar ul li a.collapsible {
     font-weight: bold;
 }
 
-ul li.collapsible span.collapsible {
+div.leftsidebar ul li.collapsible span.collapsible {
     cursor: pointer;
     float: left;
     display: block;
@@ -93,7 +93,7 @@ div.model ul{
     margin-bottom: 2em;
 }
 
-ul li a.using {
+div.leftsidebar ul li a.using {
     color: #ccc;
     padding-right: 15px;
     background: url(using.png) center right no-repeat;
@@ -142,8 +142,6 @@ div.droppable{
     position: absolute;
     text-align: center;
     opacity: 0.8;
-    left: 21%;
-    width: 79%;
     min-height: 300px;
     background: #efefef;
     text-align: center;
