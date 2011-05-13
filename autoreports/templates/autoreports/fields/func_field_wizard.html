@@ -1,0 +1,30 @@
+{% load i18n %}
+
+<script type="text/javascript">
+    (function($){
+        $(document).ready(function () {
+            $(".adaptor a.show").click(function(){
+                $(this).parent().find(".adaptorHelp").fadeIn();
+                $(this).parent().find(".hide").fadeIn();
+                $(this).hide();
+                return false;
+            });
+            $(".adaptor a.hide").click(function(){
+                $(this).parent().find(".adaptorHelp").fadeOut();
+                $(this).parent().find(".show").fadeIn();
+                $(this).hide();
+                return false;
+            });
+        });
+      })(jQuery);
+</script>
+
+<div class="funcAlert">
+    {% trans "Attention!" %}
+    <p>
+        {% trans "If you insert a function you should kwown this. It's possible modify or even delete the elements of data base. If you are not sure, you don't use this feature" %}
+    </p>
+    <a href="#" class="show">{% trans "See function source code"%}</a>
+    <a href="#" class="hide hidden">{% trans "Hide function source code"%}</a>
+    {{ code|safe }}
+</div>

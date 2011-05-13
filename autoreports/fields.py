@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminDateWidget
 from django.db.models import ObjectDoesNotExist
 from django.forms import Select, TextInput, IntegerField, ValidationError, ModelMultipleChoiceField
+from django.template.loader import render_to_string
 from django.utils.translation import get_language
 from django.utils.translation import ugettext as _
 
@@ -132,19 +133,28 @@ class BaseReportField(object):
                           instance=self.instance,
                           prefix=id(self))
 
-    def render(self, form, model, is_admin=True):
+    def render_model_field(self, form, model, is_admin=True):
         modelfieldform = ModelFieldForm(initial={'app_label': model._meta.app_label,
                                                  'module_name': model._meta.module_name,
                                                  'field_name': self.field_name},
                                         instance=self.instance,
                                         prefix=form.prefix)
+        return unicode(modelfieldform)
 
-        wizard = self.get_form(is_admin)
+    def render_wizard(self, is_admin=True):
+        return unicode(self.get_form(is_admin))
+
+    def render_admin(self, modelfieldform, wizard):
+        return "<div class='adaptor'>%s %s <h2 class='removeAdaptor'>%s</h2></div>" % (modelfieldform,
+                                                                                       wizard,
+                                                                                       _("Remove"))
+
+    def render(self, form, model, is_admin=True):
+        modelfieldform = self.render_model_field(form, model)
+        wizard = self.render_wizard(is_admin)
         if is_admin:
-            return "<div class='adaptor'>%s %s <h2 class='removeAdaptor'>%s</h2></div>" % (unicode(modelfieldform),
-                                                                                           unicode(wizard),
-                                                                                           _("Remove"))
-        return "%s %s" % (unicode(modelfieldform), unicode(wizard))
+            return self.render_admin(modelfieldform, wizard)
+        return "%s %s" % (modelfieldform, wizard)
 
     def render_instance(self, is_admin=True):
         wizard = self.get_form(is_admin)
@@ -422,3 +432,19 @@ class FuncField(BaseReportField):
     @classmethod
     def get_filters(self):
         return tuple()
+
+    def render_admin(self, modelfieldform, wizard):
+        try:
+            from inspect import getsource
+            from pygments import highlight
+            from pygments.lexers import PythonLexer
+            from pygments.formatters import HtmlFormatter
+            code = getsource(self.field)
+            code = highlight(code, PythonLexer(), HtmlFormatter(cssclass="adaptorHelp syntax hidden"))
+        except TypeError:
+            code = ""
+        adaptor_help = render_to_string("autoreports/fields/func_field_wizard.html", {'code': code})
+        return "<div class='adaptor'>%s %s %s<h2 class='removeAdaptor'>%s</h2></div>" % (modelfieldform,
+                                                                                         adaptor_help,
+                                                                                         wizard,
+                                                                                         _("Remove"))
