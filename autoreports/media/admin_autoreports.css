@@ -2,6 +2,10 @@ ul li {
     list-style-type: none;
 }
 
+.hidden {
+    display: none;
+}
+
 form.report ul li label {
     float: none;
     width: auto;
