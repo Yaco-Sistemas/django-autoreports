@@ -129,7 +129,7 @@ def get_adaptors_from_report(report):
         return adaptors
     for field_name, ops in report.options.items():
         model_field, field = get_field_from_model(model, field_name)
-        adaptors.append(get_adaptor(field)(model, field, field_name, instance=report))
+        adaptors.append(get_adaptor(field)(model, field, field_name, instance=report, treatment_transmeta=False))
     return adaptors
 
 
@@ -203,9 +203,10 @@ def get_field_by_name(model, field_name, checked_transmeta=True, api=None):
         if checked_transmeta and has_transmeta():
             field_name_transmeta = transmeta.get_real_fieldname(field_name, get_language())
             try:
-                return get_field_by_name(model,
-                                         field_name_transmeta,
-                                         checked_transmeta=False)
+                field_name_transmeta, field = get_field_by_name(model,
+                                                                field_name_transmeta,
+                                                                checked_transmeta=False)
+                return (field_name, field)
             except models.FieldDoesNotExist, e:
                 pass
         field_name, func = __treatment_to_other_fields(field_name, model)

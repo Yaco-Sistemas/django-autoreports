@@ -51,7 +51,7 @@ class ModelFieldForm(forms.Form):
         model = ct.model_class()
         prefix, field_name_parsed = parsed_field_name(field_name)
         field_name, field = get_field_by_name(model, field_name_parsed)
-        return get_adaptor(field)(model, field, field_name)
+        return get_adaptor(field)(model, field, field_name, treatment_transmeta=False)
 
 
 class WizardField(forms.Form):

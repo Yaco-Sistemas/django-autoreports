@@ -103,7 +103,7 @@ def reports_ajax_fields_options(request):
     field_name = request.GET.get('field')
     prefix, field_name_parsed = parsed_field_name(field_name)
     field_name_x, field = get_field_by_name(model, field_name_parsed)
-    adaptor = get_adaptor(field)(model, field, field_name)
+    adaptor = get_adaptor(field)(model, field, field_name, treatment_transmeta=False)
     wizard = adaptor.get_form(is_admin)
     wizard_render = adaptor.render(wizard, model, is_admin)
     return HttpResponse(wizard_render,

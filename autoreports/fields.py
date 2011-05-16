@@ -20,12 +20,13 @@ from autoreports.wizards import ModelFieldForm, WizardField, WizardAdminField
 
 class BaseReportField(object):
 
-    def __init__(self, model, field, field_name=None, instance=None, *args, **kwargs):
+    def __init__(self, model, field, field_name=None, instance=None, treatment_transmeta=True, *args, **kwargs):
         super(BaseReportField, self).__init__(*args, **kwargs)
         self.model = model
         self.field = field
         self.field_name = field_name or self.field.name
-        self._treatment_transmeta()
+        if treatment_transmeta:
+            self._treatment_transmeta()
         self.field_name_parsed = self.field_name.replace(SEPARATED_FIELD, '__')
         self.instance = instance
 
