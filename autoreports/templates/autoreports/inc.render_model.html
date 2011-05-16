@@ -5,7 +5,7 @@
         <span class="app_label" style="display:none">{{ app_label }}</span>
         <span class="module_name" style="display:none">{{ module_name }}</span>
     </div>
-    <h4>{% trans "Fields" %}</h4>
+    <h4 class="fieldTitle">{% trans "Fields" %}</h4>
     <ul class="fields">
         {% for field in fields %}
             <li class="draggable{% if field.collapsible %} collapsible{% endif %}">
@@ -22,7 +22,7 @@
         {% endfor %}
     </ul>
     {% if funcs %}
-    <h4>{% trans "Functions" %}</h4>
+    <h4 class="functionTitle">{% trans "Functions" %}</h4>
     <ul class="functions">
         {% for func in funcs %}
             <li class="draggable {{ func.name }}">

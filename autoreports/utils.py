@@ -200,6 +200,14 @@ def get_field_by_name(model, field_name, checked_transmeta=True, api=None):
     try:
         return (field_name, model._meta.get_field_by_name(field_name)[0])
     except models.FieldDoesNotExist, e:
+        if checked_transmeta and has_transmeta():
+            field_name_transmeta = transmeta.get_real_fieldname(field_name, get_language())
+            try:
+                return get_field_by_name(model,
+                                         field_name_transmeta,
+                                         checked_transmeta=False)
+            except models.FieldDoesNotExist, e:
+                pass
         field_name, func = __treatment_to_other_fields(field_name, model)
         if func:
             return (field_name, func)
@@ -207,11 +215,6 @@ def get_field_by_name(model, field_name, checked_transmeta=True, api=None):
             field_name, func = __treatment_to_other_fields(field_name, api)
             if func:
                 return (field_name, func)
-        if checked_transmeta and has_transmeta():
-            field_name = transmeta.get_real_fieldname(field_name, get_language())
-            return get_field_by_name(model,
-                                     field_name,
-                                     checked_transmeta=False)
         raise e
 
 
