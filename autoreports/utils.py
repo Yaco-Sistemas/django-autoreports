@@ -270,7 +270,7 @@ def get_all_field_names(model):
     return field_list
 
 
-def get_fields_from_model(model, prefix=None, ignore_models=None):
+def get_fields_from_model(model, prefix=None, ignore_models=None, adaptors=None):
     fields = []
     funcs = []
     prefix = prefix or ''
@@ -280,6 +280,8 @@ def get_fields_from_model(model, prefix=None, ignore_models=None):
         field_name_model, field = get_field_by_name(model, field_name)
         field_name_prefix = prefix and '%s%s%s' % (prefix, SEPARATED_FIELD, field_name) or field_name
         adaptor = get_adaptor(field)(model, field, field_name_prefix)
+        if adaptors and not isinstance(adaptor, adaptors):
+            continue
         field_data = {'name': field_name,
                       'name_prefix': field_name_prefix}
         if isinstance(field, (RelatedObject, RelatedField)):
@@ -299,7 +301,7 @@ def get_fields_from_model(model, prefix=None, ignore_models=None):
 
     autoreports_functions = getattr(settings, 'AUTOREPORTS_FUNCTIONS', False)
 
-    if not autoreports_functions:
+    if not autoreports_functions or adaptors:
         return (fields, None)
 
     for func_name in dir(model):
@@ -337,6 +339,39 @@ def pre_processing_transmeta_fields(model, field_list):
             else:
                 field_list.remove(field_to_remove)
     return field_list
+
+
+def filtering_from_request(object_list, filters, report=None):
+    for field in EXCLUDE_FIELDS:
+        if field in filters:
+            del filters[field]
+    if not report or not report.options:
+        return (filters, object_list.filter(**filters).distinct())
+    else:
+        filter_list = {}
+        options = report.options
+        for fil, value in filters.items():
+            fil_split = fil.split('__')
+            field = SEPARATED_FIELD.join(fil_split[:-1])
+            prefix = '__'.join(fil_split[:-2])
+            filter_operator = fil_split[-1]
+            field_options = options.get(field, None)
+            if not field_options or not field_options.get('other_fields', None):
+                object_list = object_list.filter(**{fil: value})
+                filter_list[fil] = value
+            else:
+                from django.db.models  import Q
+                other_fields = field_options.get('other_fields', None)
+                filter_or = Q(**{fil: value})
+                filter_list[fil] = [{fil: value}]
+                for other_field in other_fields:
+                    if prefix:
+                        other_field = "%s__%s" % (prefix, other_field)
+                    other_field = str("%s__%s" % (other_field, filter_operator))
+                    filter_or = filter_or | Q(**{other_field: value})
+                    filter_list[fil].append({other_field: value})
+                object_list = object_list.filter(filter_or)
+    return (filter_list, object_list.distinct())
 
 
 def transmeta_field_name(field, field_name):

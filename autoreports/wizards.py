@@ -108,6 +108,9 @@ class WizardField(forms.Form):
                 self.fields['label'].initial = field_options.get('label', '')
                 self.fields['help_text'].initial = field_options.get('help_text', '')
 
+        for key, field in autoreport_field.extra_wizard_fields().items():
+            self.fields[key] = field
+
 
 class WizardAdminField(WizardField, FormAdminDjango):
 

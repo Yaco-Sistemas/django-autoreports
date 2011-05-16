@@ -68,7 +68,7 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
             self.fields[field_required].required = True
         return valid
 
-    def get_report(self, request, queryset, form_display, report_to):
+    def get_report(self, request, queryset, form_display, report, report_to):
         list_headers = []
         report_display_fields = form_display.cleaned_data.get('__report_display_fields_choices', [])
         choices_display_fields = dict(form_display.fields['__report_display_fields_choices'].choices)
@@ -81,4 +81,5 @@ class ReportFilterForm(ReportForm, FormAdminDjango):
                  fields=report_display_fields,
                  list_headers=list_headers,
                  queryset=queryset,
+                 report=report,
                  report_to=report_to)

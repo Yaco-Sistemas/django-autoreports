@@ -5,14 +5,16 @@ from copy import copy
 from django.conf import settings
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminDateWidget
 from django.db.models import ObjectDoesNotExist
-from django.forms import Select, TextInput, IntegerField, ValidationError, ModelMultipleChoiceField
+from django.forms import (Select, TextInput, IntegerField, ValidationError,
+                          ModelMultipleChoiceField, MultipleChoiceField, CheckboxSelectMultiple)
 from django.template.loader import render_to_string
 from django.utils.translation import get_language
 from django.utils.translation import ugettext as _
 
 from autoreports.forms import BaseReportForm
 from autoreports.model_forms import modelform_factory
-from autoreports.utils import get_field_from_model, parsed_field_name, transmeta_field_name, SEPARATED_FIELD
+from autoreports.utils import (get_fields_from_model, get_field_from_model, get_model_of_relation,
+                               parsed_field_name, transmeta_field_name, SEPARATED_FIELD)
 from autoreports.wizards import ModelFieldForm, WizardField, WizardAdminField
 
 
@@ -141,6 +143,9 @@ class BaseReportField(object):
                                         prefix=form.prefix)
         return unicode(modelfieldform)
 
+    def extra_wizard_fields(self):
+        return {}
+
     def render_wizard(self, is_admin=True):
         return unicode(self.get_form(is_admin))
 
@@ -176,6 +181,29 @@ class TextFieldReportField(BaseReportField):
     def change_widget(self, field, opts=None):
         field.widget = TextInput()
         return field
+
+    def extra_wizard_fields(self):
+        prefix, field_name = parsed_field_name(self.field_name)
+        prefix = SEPARATED_FIELD.join(prefix)
+        if prefix:
+            model, field = get_field_from_model(self.model, prefix)
+            model = get_model_of_relation(field)
+        else:
+            model = self.model
+        fields = get_fields_from_model(model, adaptors=(TextFieldReportField,))
+        current_field_name = self.field_name.split(SEPARATED_FIELD)[-1]
+        choices = [(f['name'], f['verbose_name']) for f in fields[0] if f['name'] != current_field_name]
+        initial = None
+        if self.instance:
+            field_options = self.instance.options.get(self.field_name, None)
+            if field_options:
+                initial = field_options.get('other_fields', None)
+        return {'other_fields': MultipleChoiceField(label=_('Other fields'),
+                                                    required=False,
+                                                    choices=choices,
+                                                    widget=CheckboxSelectMultiple,
+                                                    initial=initial,
+                                                    help_text=_('Choose other fields to a filter'))}
 
     @classmethod
     def get_filters(self):
@@ -213,6 +241,9 @@ class ChoicesFieldReportField(TextFieldReportField):
         return (('exact', _('Exact')),
                 #('isnull', _('Is empty')),)
                 )
+
+    def extra_wizard_fields(self):
+        return super(TextFieldReportField, self).extra_wizard_fields()
 
     def change_widget(self, field, opts=None):
         field.widget.choices = [('', '----')] + field.widget.choices
@@ -440,7 +471,7 @@ class FuncField(BaseReportField):
             from pygments.lexers import PythonLexer
             from pygments.formatters import HtmlFormatter
             code = getsource(self.field)
-            code = highlight(code, PythonLexer(), HtmlFormatter(cssclass="adaptorHelp syntax hidden"))
+            code = highlight(code, PythonLexer(), HtmlFormatter(cssclass="syntax hiddenElement"))
         except TypeError:
             code = ""
         adaptor_help = render_to_string("autoreports/fields/func_field_wizard.html", {'code': code})

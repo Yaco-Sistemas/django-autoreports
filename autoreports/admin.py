@@ -75,7 +75,7 @@ class ReportAdmin(ReportApi):
         ) + urlpatterns
         return urlpatterns
 
-    def _get_change_list(self, request, model, cl_options):
+    def _get_change_list(self, request, model, cl_options, report):
         list_display = cl_options.get('list_display', self.list_display)
         if 'action_checkbox' in list_display:
             list_display = list_display[1:]
@@ -91,20 +91,20 @@ class ReportAdmin(ReportApi):
         if model != self.model:
             model_admin = admin.site._registry[model]
         try:
-            return AutoReportChangeList(request, model, prefix_url, list_display, list_display_links, list_filter,
-                date_hierarchy, search_fields, list_select_related, list_per_page, model_admin)
-        except TypeError:
-            cl = AutoReportChangeList(request, model, prefix_url, list_display, list_display_links, list_filter,
+            cl = AutoReportChangeList(request, model, prefix_url, report, list_display, list_display_links, list_filter,
                 date_hierarchy, search_fields, list_select_related, list_per_page, list_editable, model_admin)
             cl.formset = None
             return cl
+        except TypeError:
+            return AutoReportChangeList(request, model, prefix_url, report, list_display, list_display_links, list_filter,
+                date_hierarchy, search_fields, list_select_related, list_per_page, model_admin)
 
-    def _get_extra_context_fake_change_list(self, model, request, extra_context=None, cl_options=None):
+    def _get_extra_context_fake_change_list(self, model, request, extra_context=None, cl_options=None, report=None):
         extra_context = extra_context or {}
         opts = model._meta
         app_label = opts.app_label
         cl_options = cl_options or {}
-        cl = self._get_change_list(request, model, cl_options)
+        cl = self._get_change_list(request, model, cl_options, report)
         context = {
             'title': cl.title,
             'is_popup': cl.is_popup,
@@ -242,7 +242,7 @@ class ReportAdmin(ReportApi):
                    'template_base': "admin/change_list.html",
                     }
         extra_context = extra_context or {}
-        context = self._get_extra_context_fake_change_list(self.model, request, context)
+        context = self._get_extra_context_fake_change_list(self.model, request, context, report=report)
         cl = context.get('cl', None)
         context['_adavanced_filters'] = cl and cl._adavanced_filters or None
         context.update(extra_context)

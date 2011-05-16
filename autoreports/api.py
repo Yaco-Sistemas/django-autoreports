@@ -60,9 +60,9 @@ class ReportApi(object):
         form_display = form_display_class(data=data, is_admin=self.is_admin)
         return form_display
 
-    def get_report(self, request, queryset, form_filter, form_display, submit):
+    def get_report(self, request, queryset, form_filter, form_display, report, submit):
         queryset = queryset or self.model.objects.all()
-        return form_filter.get_report(request, queryset, form_display, submit)
+        return form_filter.get_report(request, queryset, form_display, report, submit)
 
     def get_fields_of_form(self, report=None):
         fields_form_filter = SortedDict({})
@@ -92,7 +92,26 @@ class ReportApi(object):
     def get_django_query(self, _adavanced_filters):
         model_name = self.model.__name__
         query = 'from %s import %s' % (self.model.__module__, model_name)
-        query += '\n%s.objects.filter(**%s).distinct()' % (model_name, unicode(_adavanced_filters))
+        import_q = '\nfrom django.db.models import Q'
+        query_filter = '\n%s.objects' % model_name
+        filter_or = None
+        filters = {}
+        for fil, value in _adavanced_filters.items():
+            if isinstance(value, list) and len(value) > 0 and isinstance(value[0], dict):
+                filter_or = ''
+                for item in value:
+                    if filter_or:
+                        filter_or += ' | '
+                    filter_or += 'Q(**%s)' % unicode(item)
+                query_filter += '.filter(%s)' % filter_or
+            else:
+                filters[fil] = value
+        if filters:
+            query_filter += '.filter(**%s)' % unicode(filters)
+        query_filter += '.distinct()'
+        if filter_or:
+            query += import_q
+        query += query_filter
         return query
 
     def report(self, request, report=None, queryset=None, template_name='autoreports/autoreports_form.html', extra_context=None):
@@ -104,8 +123,8 @@ class ReportApi(object):
         are_valid = False
         if data:
             are_valid = form_display.is_valid() and form_filter.is_valid()
-        if export_report and are_valid:
-            return self.get_report(request, queryset, form_filter, form_display, export_report)
+        if export_report and are_valid and report:
+            return self.get_report(request, queryset, form_filter, form_display, report, export_report)
         extra_context = extra_context or {}
         _adavanced_filters = extra_context.get('_adavanced_filters', None)
         django_query = None

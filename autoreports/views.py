@@ -36,7 +36,8 @@ from autoreports.utils import (EXCLUDE_FIELDS,
                                get_parser_value,
                                get_adaptor, parsed_field_name,
                                get_field_by_name, pre_procession_request,
-                               get_querystring_manager)
+                               get_querystring_manager,
+                               filtering_from_request)
 from autoreports.csv_to_excel import  convert_to_excel
 
 
@@ -113,6 +114,7 @@ def reports_view(request, app_name, model_name, fields=None,
                  list_headers=None, ordering=None, filters=Q(),
                  model_admin=None, queryset=None,
                  report_to='csv',
+                 report=None,
                  separated_field=SEPARATED_FIELD,
                  pre_procession_lite=False):
     class_model = models.get_model(app_name, model_name)
@@ -140,11 +142,8 @@ def reports_view(request, app_name, model_name, fields=None,
 
     filters = qsm.get_filters()
 
-    for field in EXCLUDE_FIELDS:
-        if field in filters:
-            del filters[field]
+    filters, object_list = filtering_from_request(object_list, filters, report)
 
-    object_list = object_list.filter(**filters).distinct()
     if ordering:
         object_list = object_list.order_by(*ordering)
 
