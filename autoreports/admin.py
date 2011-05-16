@@ -113,6 +113,7 @@ class ReportAdmin(ReportApi):
             'root_path': self.admin_site.root_path,
             'app_label': app_label,
             'opts': self.opts,
+            'has_add_permission': request.user.is_superuser
         }
         context.update(extra_context or {})
         return context

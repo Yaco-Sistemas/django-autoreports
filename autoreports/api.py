@@ -62,7 +62,7 @@ class ReportApi(object):
 
     def get_report(self, request, queryset, form_filter, form_display, report, submit):
         queryset = queryset or self.model.objects.all()
-        return form_filter.get_report(request, queryset, form_display, report, submit)
+        return form_filter.get_report(request, queryset, form_display, report, submit, api=self)
 
     def get_fields_of_form(self, report=None):
         fields_form_filter = SortedDict({})
@@ -85,7 +85,7 @@ class ReportApi(object):
 
     def get_field_of_form(self, field_name, opts=None, default=True,
                                 fields_form_filter=None, fields_form_display=None):
-        model, field = get_field_from_model(self.model, field_name)
+        model, field = get_field_from_model(self.model, field_name, api=self)
         adaptor = get_adaptor(field)(model, field, field_name)
         return adaptor.get_field_form(opts, default, fields_form_filter, fields_form_display)
 
@@ -123,7 +123,7 @@ class ReportApi(object):
         are_valid = False
         if data:
             are_valid = form_display.is_valid() and form_filter.is_valid()
-        if export_report and are_valid and report:
+        if export_report and are_valid:
             return self.get_report(request, queryset, form_filter, form_display, report, export_report)
         extra_context = extra_context or {}
         _adavanced_filters = extra_context.get('_adavanced_filters', None)

@@ -14,6 +14,7 @@
  # along with this programe.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings
+from django.contrib.contenttypes.generic import GenericForeignKey
 from django.contrib.admin.views.main import (ALL_VAR, ORDER_VAR, ORDER_TYPE_VAR, PAGE_VAR, SEARCH_VAR,
                                              TO_FIELD_VAR, IS_POPUP_VAR, ERROR_FLAG)
 from django.contrib.sites.models import Site
@@ -71,6 +72,7 @@ def pre_procession_request(request, model, lite=False):
 
         def __init__(self, request, model, lite=False, *args, **kwargs):
             new_get = None
+            setattr(self, 'user', getattr(request, 'user', None))
             try:
                 path = request.get_full_path()
                 path_index = path.index("?")
@@ -137,7 +139,8 @@ def get_adaptor(field):
                                     DateFieldReportField, DateTimeFieldReportField,
                                     BooleanFieldReportField, RelatedReverseField,
                                     ForeingKeyReportField, M2MReportField,
-                                    NumberFieldReportField, AutoNumberFieldReportField)
+                                    NumberFieldReportField, AutoNumberFieldReportField,
+                                    GenericFKField, PropertyField)
     if isinstance(field, models.CharField) or isinstance(field, models.TextField):
         if getattr(field, 'choices', None):
             return ChoicesFieldReportField
@@ -161,6 +164,10 @@ def get_adaptor(field):
         return RelatedReverseField
     elif callable(field):
         return FuncField
+    elif isinstance(field, property):
+        return PropertyField
+    elif isinstance(field, GenericForeignKey):
+        return GenericFKField
     return BaseReportField
 
 
@@ -177,13 +184,29 @@ def parsed_field_name(field_name, separated_field=SEPARATED_FIELD):
     return (prefix, field_name)
 
 
-def get_field_by_name(model, field_name, checked_transmeta=True):
+def __treatment_to_other_fields(field_name, model_or_api):
+    func = getattr(model_or_api, field_name, None)
+    if func:
+        if callable(func):
+            return (field_name, func)
+        elif isinstance(func, property):
+            return (field_name, func)
+        elif isinstance(func, GenericForeignKey):
+            return (field_name, func)
+    return (field_name, None)
+
+
+def get_field_by_name(model, field_name, checked_transmeta=True, api=None):
     try:
         return (field_name, model._meta.get_field_by_name(field_name)[0])
     except models.FieldDoesNotExist, e:
-        func = getattr(model, field_name, None)
-        if func and callable(func):
+        field_name, func = __treatment_to_other_fields(field_name, model)
+        if func:
             return (field_name, func)
+        if api:
+            field_name, func = __treatment_to_other_fields(field_name, api)
+            if func:
+                return (field_name, func)
         if checked_transmeta and has_transmeta():
             field_name = transmeta.get_real_fieldname(field_name, get_language())
             return get_field_by_name(model,
@@ -192,14 +215,14 @@ def get_field_by_name(model, field_name, checked_transmeta=True):
         raise e
 
 
-def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD):
+def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD, api=None):
     if not obj:
         return obj
     prefix, field_name_parsed = parsed_field_name(field_name, separated_field)
     model = type(obj)
     if not prefix:
         try:
-            field_name, field = get_field_by_name(model, field_name)
+            field_name, field = get_field_by_name(model, field_name, api=api)
             adaptor = get_adaptor(field)(model, field, field_name)
             return adaptor.get_value(obj, field_name)
         except models.FieldDoesNotExist, e:
@@ -210,7 +233,7 @@ def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD):
         field_name_current = prefix[0]
         field_name_new = prefix[1:]
         field_name_new.append(field_name_parsed)
-        field_name, field = get_field_by_name(model, prefix[0])
+        field_name, field = get_field_by_name(model, prefix[0], api=api)
         adaptor = get_adaptor(field)(model, field, field_name)
         value = adaptor.get_value(obj, field_name_current)
         if is_iterable(value):
@@ -250,17 +273,19 @@ def get_parser_value(value):
     return get_parser_value(unicode(value))
 
 
-def get_field_from_model(model, field_name, separated_field=SEPARATED_FIELD):
+def get_field_from_model(model, field_name, separated_field=SEPARATED_FIELD, api=None):
     prefix, field_name_parsed = parsed_field_name(field_name, separated_field)
     if not prefix:
-        field_name, field = get_field_by_name(model, field_name)
+        field_name, field = get_field_by_name(model, field_name,
+                                              api=api)
         return (model, field)
     else:
         field_name_new = prefix[1:]
         field_name_new.append(field_name_parsed)
         field_name, field = get_field_by_name(model, prefix[0])
         return get_field_from_model(get_model_of_relation(field),
-                                    separated_field.join(field_name_new))
+                                    separated_field.join(field_name_new),
+                                    api=api)
 
 
 def get_all_field_names(model):

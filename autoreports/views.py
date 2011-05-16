@@ -112,7 +112,7 @@ def reports_ajax_fields_options(request):
 
 def reports_view(request, app_name, model_name, fields=None,
                  list_headers=None, ordering=None, filters=Q(),
-                 model_admin=None, queryset=None,
+                 api=None, queryset=None,
                  report_to='csv',
                  report=None,
                  separated_field=SEPARATED_FIELD,
@@ -123,9 +123,9 @@ def reports_view(request, app_name, model_name, fields=None,
     formats = get_available_formats()
 
     if not list_fields:
-        model_admin = model_admin or site._registry.get(class_model, None)
-        if model_admin:
-            list_fields = model_admin.list_display
+        api = api or site._registry.get(class_model, None)
+        if api:
+            list_fields = api.list_display
             set_fields = set(list_fields) - set(EXCLUDE_FIELDS)
             list_fields = list(set_fields)
         else:
@@ -148,7 +148,8 @@ def reports_view(request, app_name, model_name, fields=None,
         object_list = object_list.order_by(*ordering)
 
     response = csv_head(name, list_headers)
-    csv_body(response, class_model, object_list, list_fields, separated_field=separated_field)
+    csv_body(response, class_model, object_list, list_fields,
+             separated_field=separated_field, api=api)
     if report_to == 'excel':
         convert_to_excel(response)
     return response
@@ -196,7 +197,8 @@ def csv_head(filename, columns, delimiter=','):
     return response
 
 
-def csv_body(response, class_model, object_list, list_fields, delimiter=',', separated_field=SEPARATED_FIELD):
+def csv_body(response, class_model, object_list, list_fields, delimiter=',',
+             separated_field=SEPARATED_FIELD, api=None):
     writer = csv.writer(response, delimiter=delimiter)
     try:
         oldlocale = locale.setlocale(locale.LC_ALL, 'es_ES.UTF8')
@@ -205,7 +207,9 @@ def csv_body(response, class_model, object_list, list_fields, delimiter=',', sep
     for obj in object_list:
         values = []
         for field_name in list_fields:
-            value = get_value_from_object(obj, field_name, separated_field=separated_field)
+            value = get_value_from_object(obj, field_name,
+                                          separated_field=separated_field,
+                                          api=api)
             value = get_parser_value(value)
             values.append(value)
         writer.writerow(values)

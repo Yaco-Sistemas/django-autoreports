@@ -17,10 +17,10 @@
 
 {% block breadcrumbs %}{% if not is_popup %}
 <div class="breadcrumbs">
-     <a href="../../../../../">{% trans "Home" %}</a> &rsaquo;
-     <a href="../../../../">{% trans opts.app_label.title %}</a> &rsaquo;
-     <a href="../../../">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
-     <a href="../../">{% trans "Reports" %}</a> &rsaquo;
+     <a href="{% if report %}../{% endif %}../../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="{% if report %}../{% endif %}../../../">{% trans opts.app_label.title %}</a> &rsaquo;
+     <a href="{% if report %}../{% endif %}../../">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+     <a href="{% if report %}../{% endif %}../">{% trans "Reports" %}</a> &rsaquo;
      {% if report %}
         {{ report }}
      {% else %}

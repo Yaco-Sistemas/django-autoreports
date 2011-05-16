@@ -449,7 +449,13 @@ class FuncField(BaseReportField):
         return ''
 
     def get_value(self, obj, field_name=None):
-        value = super(FuncField, self).get_value(obj, field_name)()
+        func_args = self.field.im_func.func_code.co_argcount
+        if func_args == 1:
+            value = self.field()
+        elif func_args == 2:
+            value = self.field(obj)
+        else:
+            value = 'error'
         if field_name in self.middleware_value:
             value = self.middleware_value[field_name](value)
         return value
@@ -479,3 +485,13 @@ class FuncField(BaseReportField):
                                                                                          adaptor_help,
                                                                                          wizard,
                                                                                          _("Remove"))
+
+
+class PropertyField(FuncField):
+
+    def get_value(self, obj, field_name=None):
+        return super(FuncField, self).get_value(obj, field_name)
+
+
+class GenericFKField(PropertyField):
+    pass

@@ -10,3 +10,17 @@
      {% trans "Reports" %}
 </div>
 {% endif %}{% endblock %}
+
+{% block object-tools %}
+    {% if has_add_permission %}
+    <ul class="object-tools">
+        {% block object-tools-items %}
+        <li>
+            <a href="wizard/{% if is_popup %}?_popup=1{% endif %}" class="addlink">
+            {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+            </a>
+        </li>
+        {% endblock %}
+    </ul>
+    {% endif %}
+{% endblock %}
