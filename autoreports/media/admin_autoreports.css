@@ -2,7 +2,7 @@ ul li {
     list-style-type: none;
 }
 
-.hidden {
+.hiddenElement {
     display: none;
 }
 
