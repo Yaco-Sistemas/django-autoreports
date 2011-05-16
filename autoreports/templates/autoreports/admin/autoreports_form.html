@@ -16,6 +16,7 @@
     <link href="{{ MEDIA_URL }}autoreports/admin_autoreports.css" type="text/css" rel="stylesheet">
 {% endblock %}
 
+{% block content_title %}{% endblock %}
 
 {% block breadcrumbs %}{% if not is_popup %}
 <div class="breadcrumbs">
@@ -43,4 +44,9 @@
     {% endif %}
     {{ form_filter.as_django_admin }}
     {{ form_display.as_django_admin }}
+{% endblock %}
+
+{% block contentmain %}
+    {{ block.super }}
+    <h2>{% trans "Results" %}</h2>
 {% endblock %}
