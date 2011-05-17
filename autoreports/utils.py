@@ -371,7 +371,9 @@ def pre_processing_transmeta_fields(model, field_list):
     return field_list
 
 
-def filtering_from_request(object_list, filters, report=None):
+def filtering_from_request(request, object_list, report=None):
+    qsm = get_querystring_manager()(request)
+    filters = qsm.get_filters()
     for field in EXCLUDE_FIELDS:
         if field in filters:
             del filters[field]
