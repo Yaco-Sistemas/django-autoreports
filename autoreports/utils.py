@@ -398,7 +398,7 @@ def filtering_from_request(object_list, filters, report=None):
                 for other_field in other_fields:
                     if prefix:
                         other_field = "%s__%s" % (prefix, other_field)
-                    m, f = get_field_from_model(model, other_field)
+                    m, f = get_field_from_model(model, other_field, separated_field='__')
                     other_field = transmeta_field_name(f, other_field)
                     other_field = str("%s__%s" % (other_field, filter_operator))
                     filter_or = filter_or | Q(**{other_field: value})
