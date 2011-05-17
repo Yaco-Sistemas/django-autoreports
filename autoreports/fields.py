@@ -197,6 +197,11 @@ class TextFieldReportField(BaseReportField):
     def get_filter_default(self):
         return 'icontains'
 
+    def change_value(self, value, key, request_get):
+        if len(value) <= 0 or not value[0]:
+            del request_get[key]
+        return (value, request_get)
+
     def change_widget(self, field, opts=None):
         widget = self._get_widget_from_opts(opts)
         if widget == 'textarea':
@@ -242,6 +247,10 @@ class TextFieldReportField(BaseReportField):
 class ProviderSelectMultiple(object):
 
     @classmethod
+    def get_widgets_available(self):
+        return (self.get_widgets_initial(), self.get_widgets_available_multiple())
+
+    @classmethod
     def get_widgets_available_multiple(self):
         return ('selectmultiple', _('Select Multiple'))
 
@@ -260,18 +269,55 @@ class ProviderSelectMultiple(object):
 
     def change_widget(self, field, opts=None):
         widget = self._get_widget_from_opts(opts)
-        new_choices = [self.get_widgets_initial()] + field.widget.choices
-        if widget == 'selectmultiple':
+        if isinstance(field.widget.choices, list):
+            new_choices = [self.get_widgets_initial()] + field.widget.choices
+        else:
+            new_choices = field.widget.choices
+        slug_multiple = self.get_widgets_available_multiple()[0]
+        if widget == slug_multiple:
             field = self.change_widget_multiple(field, new_choices)
         field.widget.choices = new_choices
         return field
 
 
-class ChoicesFieldReportField(ProviderSelectMultiple, TextFieldReportField):
+class ProviderSelectSigle(object):
 
     @classmethod
     def get_widgets_available(self):
-        return (self.get_widgets_initial(), self.get_widgets_available_multiple())
+        return (self.get_widgets_initial(), self.get_widgets_available_single())
+
+    @classmethod
+    def get_widgets_available_single(self):
+        return ('select', _('Select'))
+
+    def get_change_filter(self, fil, opts):
+        widget = self._get_widget_from_opts(opts)
+        slug_single = self.get_widgets_available_single()[0]
+        if widget == slug_single:
+            return ('exact', _('Exact'))
+        return super(ProviderSelectSigle, self).get_change_filter(fil, opts)
+
+    def change_widget_sigle(self, field, choices):
+        field_initial = field.initial and field.initial[0] or None
+        return forms.ChoiceField(label=field.label,
+                                 choices=choices,
+                                 help_text=field.help_text,
+                                 initial=field_initial)
+
+    def change_widget(self, field, opts=None):
+        widget = self._get_widget_from_opts(opts)
+        if isinstance(field.widget.choices, list):
+            new_choices = [self.get_widgets_initial()] + field.widget.choices
+        else:
+            new_choices = [self.get_widgets_initial()] + [choice for choice in field.widget.choices]
+        slug_single = self.get_widgets_available_single()[0]
+        if widget == slug_single:
+            field = self.change_widget_sigle(field, new_choices)
+        field.widget.choices = new_choices
+        return field
+
+
+class ChoicesFieldReportField(ProviderSelectMultiple, TextFieldReportField):
 
     def get_value(self, obj, field_name=None):
         field_name = field_name or self.field_name_parsed
@@ -340,7 +386,7 @@ class DateFieldReportField(BaseReportField):
             return value
 
     def change_value(self, value, key, request_get):
-        if not value:
+        if len(value) <= 0 or not value[0]:
             del request_get[key]
         return (self.parser_date(value), request_get)
 
@@ -387,7 +433,7 @@ class DateTimeFieldReportField(DateFieldReportField):
 class BooleanFieldReportField(BaseReportField):
 
     def change_widget(self, field, opts=None):
-        choices = (('', '--------'),
+        choices = (self.get_widgets_initial(),
                    ('0', _('No')),
                    ('1', _('Yes')),)
 
@@ -395,11 +441,12 @@ class BooleanFieldReportField(BaseReportField):
         return field
 
     def change_value(self, value, key, request_get):
-        if value == '0':
-            return (False, request_get)
-        elif value == '1':
-            return (True, request_get)
-        elif key in request_get:
+        if len(value) > 0:
+            if value[0] == '0':
+                return ([False], request_get)
+            elif value[0] == '1':
+                return ([True], request_get)
+        if key in request_get:
             del request_get[key]
         return (value, request_get)
 
@@ -413,11 +460,7 @@ class BooleanFieldReportField(BaseReportField):
                 )
 
 
-class RelatedReportField(ProviderSelectMultiple, BaseReportField):
-
-    @classmethod
-    def get_widgets_available(self):
-        return (self.get_widgets_initial(), self.get_widgets_available_multiple(),)
+class RelatedReportField(BaseReportField):
 
     def _treatment_transmeta(self):
         pass
@@ -433,6 +476,11 @@ class RelatedReportField(ProviderSelectMultiple, BaseReportField):
     def get_filter_default(self):
         return 'exact'
 
+    def change_value(self, value, key, request_get):
+        if len(value) <= 0 or not value[0]:
+            del request_get[key]
+        return (value, request_get)
+
     @classmethod
     def get_filters(self):
         return (('exact', _('Exact')),
@@ -440,7 +488,7 @@ class RelatedReportField(ProviderSelectMultiple, BaseReportField):
                )
 
 
-class RelatedReverseField(RelatedReportField):
+class RelatedReverseField(ProviderSelectSigle, RelatedReportField):
 
     def get_basic_field_form(self, form, field_name):
         return forms.ModelMultipleChoiceField(label=self.get_verbose_name(),
@@ -461,12 +509,7 @@ class RelatedDirectField(RelatedReportField):
     pass
 
 
-class ForeingKeyReportField(RelatedDirectField):
-
-    def change_value(self, value, key, request_get):
-        if not value:
-            del request_get[key]
-        return (value, request_get)
+class ForeingKeyReportField(ProviderSelectMultiple, RelatedDirectField):
 
     def get_value(self, obj, field_name=None):
         try:
@@ -475,7 +518,7 @@ class ForeingKeyReportField(RelatedDirectField):
             return None  # Intigrity Error
 
 
-class M2MReportField(RelatedDirectField):
+class M2MReportField(ProviderSelectSigle, RelatedDirectField):
 
     def get_value(self, obj, field_name=None):
         return self._post_preccessing_get_value(

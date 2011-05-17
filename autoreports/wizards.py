@@ -99,10 +99,13 @@ class WizardField(forms.Form):
                                                       required=False,
                                                       help_text=_('Chose other widget'))
 
+        for key, field in autoreport_field.extra_wizard_fields().items():
+            self.fields[key] = field
+
         if instance:
             field_name = autoreport_field.field_name
             field_options = instance.options.get(field_name)
-            widget_initial = self.instance.options.get('widget', None)
+            widget_initial = field_options.get('widget', None)
             if not field_options:
                 return
             self.fields['display'].initial = field_options.get('display', False)
@@ -119,9 +122,6 @@ class WizardField(forms.Form):
             else:
                 self.fields['label'].initial = field_options.get('label', '')
                 self.fields['help_text'].initial = field_options.get('help_text', '')
-
-        for key, field in autoreport_field.extra_wizard_fields().items():
-            self.fields[key] = field
 
 
 class WizardAdminField(WizardField, FormAdminDjango):
