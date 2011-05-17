@@ -139,6 +139,7 @@ class ReportAdmin(ReportApi):
         cl = context['cl']
         cl.query_set = cl.query_set.filter(content_type=content_type)
         cl.result_list = cl.query_set._clone()
+        cl.result_count = len(cl.result_list)
         context['cl'] = cl
         return render_to_response(getattr(self, 'change_report_list_template', None) or [
             'autoreports/admin/%s/%s/report_list.html' % (app_label, opts.object_name.lower()),
