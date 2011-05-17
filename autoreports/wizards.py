@@ -60,7 +60,7 @@ class WizardField(forms.Form):
         super(WizardField, self).__init__(*args, **kwargs)
         self.autoreport_field = autoreport_field
         self.instance = instance
-        self.fields['display'] = forms.BooleanField(label=_('Show in the report'), required=False)
+        self.fields['display'] = forms.BooleanField(label=_('Show in the report'), initial=True, required=False)
         autoreports_i18n = getattr(settings, 'AUTOREPORTS_I18N', False)
         lang = get_language()
         if autoreports_i18n:
@@ -85,9 +85,8 @@ class WizardField(forms.Form):
             self.fields['help_text'] = forms.CharField(label=_('Help Text'),
                                                 initial=autoreport_field.get_help_text(),
                                                 required=False)
-
         self.fields['filters'] = forms.MultipleChoiceField(label=_('Filters'),
-                                                        initial=autoreport_field.get_filter_default(),
+                                                        initial=(autoreport_field.get_filter_default(),),
                                                         choices=autoreport_field.get_filters(),
                                                         widget=forms.CheckboxSelectMultiple,
                                                         required=False)
