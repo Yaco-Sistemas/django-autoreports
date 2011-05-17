@@ -85,18 +85,21 @@ class WizardField(forms.Form):
             self.fields['help_text'] = forms.CharField(label=_('Help Text'),
                                                 initial=autoreport_field.get_help_text(),
                                                 required=False)
-        self.fields['filters'] = forms.MultipleChoiceField(label=_('Filters'),
-                                                        initial=(autoreport_field.get_filter_default(),),
-                                                        choices=autoreport_field.get_filters(),
-                                                        widget=forms.CheckboxSelectMultiple,
-                                                        required=False)
+        filters = autoreport_field.get_filters()
+        if filters:
+            self.fields['filters'] = forms.MultipleChoiceField(label=_('Filters'),
+                                                            initial=(autoreport_field.get_filter_default(),),
+                                                            choices=filters,
+                                                            widget=forms.CheckboxSelectMultiple,
+                                                            required=False)
         if instance:
             field_name = autoreport_field.field_name
             field_options = instance.options.get(field_name)
             if not field_options:
                 return
             self.fields['display'].initial = field_options.get('display', False)
-            self.fields['filters'].initial = field_options.get('filters', tuple())
+            if filters:
+                self.fields['filters'].initial = field_options.get('filters', tuple())
             if autoreports_i18n:
                 for lang_code, lang_text in settings.LANGUAGES:
                     label = 'label_%s' % lang_code

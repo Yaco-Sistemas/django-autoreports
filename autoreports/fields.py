@@ -196,12 +196,12 @@ class TextFieldReportField(BaseReportField):
             field_options = self.instance.options.get(self.field_name, None)
             if field_options:
                 initial = field_options.get('other_fields', None)
-        return {'other_fields': MultipleChoiceField(label=_('Other fields'),
+        return {'other_fields': MultipleChoiceField(label=_('Other fields to filter'),
                                                     required=False,
                                                     choices=choices,
                                                     widget=CheckboxSelectMultiple,
                                                     initial=initial,
-                                                    help_text=_('Choose other fields to a filter'))}
+                                                    help_text=_('Choose other fields, when you filter with this field, you will search in these also'))}
 
     @classmethod
     def get_filters(self):
@@ -452,7 +452,7 @@ class FuncField(BaseReportField):
     def get_value(self, obj, field_name=None):
         func_args = self.field.im_func.func_code.co_argcount
         if func_args == 1:
-            value = self.field()
+            value = super(FuncField, self).get_value(obj, field_name)()
         elif func_args == 2:
             value = self.field(obj)
         else:
