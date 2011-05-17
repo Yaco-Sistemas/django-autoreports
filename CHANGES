@@ -1,3 +1,9 @@
+0.7.7
+=====
+* It be able to create searching filters joining various fields including transmeta fields
+* Fixes some errors
+* More versatile the api
+
 0.7.6
 =====
 * Warning (without layout) when you use a function
