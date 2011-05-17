@@ -13,7 +13,7 @@ from django.utils.translation import ugettext as _
 
 from autoreports.forms import BaseReportForm
 from autoreports.model_forms import modelform_factory
-from autoreports.utils import (get_fields_from_model, get_field_from_model, get_model_of_relation,
+from autoreports.utils import (get_fields_from_model, get_field_from_model,
                                parsed_field_name, transmeta_field_name, SEPARATED_FIELD)
 from autoreports.wizards import ModelFieldForm, WizardField, WizardAdminField
 
@@ -186,12 +186,7 @@ class TextFieldReportField(BaseReportField):
     def extra_wizard_fields(self):
         prefix, field_name = parsed_field_name(self.field_name)
         prefix = SEPARATED_FIELD.join(prefix)
-        if prefix:
-            model, field = get_field_from_model(self.model, prefix)
-            model = get_model_of_relation(field)
-        else:
-            model = self.model
-        fields = get_fields_from_model(model, adaptors=(TextFieldReportField,))
+        fields = get_fields_from_model(self.model, adaptors=(TextFieldReportField,))
         current_field_name = self.field_name.split(SEPARATED_FIELD)[-1]
         choices = [(f['name'], f['verbose_name']) for f in fields[0] if f['name'] != current_field_name]
         initial = None
