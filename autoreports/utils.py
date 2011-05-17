@@ -343,9 +343,10 @@ def get_fields_from_model(model, prefix=None, ignore_models=None, adaptors=None)
         func_name_prefix = func_name
         if prefix:
             func_name_prefix = '%s%s%s' % (prefix, SEPARATED_FIELD, func_name)
+        adaptor = get_adaptor(func)(model, func, func_name_prefix)
         if func_num_args == 1 or len(func.im_func.func_dict) == func_num_args:
             funcs.append({'name': func_name_prefix,
-                          'verbose_name': func_name,
+                          'verbose_name': adaptor.get_verbose_name(),
                           'collapsible': False
                           })
     return (fields, funcs)

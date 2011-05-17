@@ -438,11 +438,14 @@ class FuncField(BaseReportField):
                                         help_text=self.get_help_text())
 
     def get_verbose_name(self):
+        label = getattr(self.field, 'label', '')
+        if label:
+            return label
         prefix, field_name = parsed_field_name(self.field_name)
         return field_name
 
     def get_help_text(self):
-        return ''
+        return getattr(self.field, 'short_description', '')
 
     def get_value(self, obj, field_name=None):
         func_args = self.field.im_func.func_code.co_argcount

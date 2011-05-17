@@ -280,7 +280,7 @@ class ReportAdmin(ReportApi):
 
         return reports_view(request, self.model._meta.app_label, self.model._meta.module_name,
                             fields=fields, list_headers=None, ordering=ordering, filters=filters,
-                            model_admin=self, queryset=queryset,
+                            api=self, queryset=queryset,
                             report_to='csv')
 
     def delete_report(self, request, report_id):
