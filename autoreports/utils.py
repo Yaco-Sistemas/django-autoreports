@@ -80,7 +80,7 @@ def pre_procession_request(request, model, lite=False):
                 if lite:
                     self.GET = QueryDict("")
                     return
-                for key, value in new_get.items():
+                for key, value in new_get.iterlists():
                     if not key.startswith('__'):
                         key_with_filter = '__'.join(key.split('__')[:-1])
                         try:
@@ -89,7 +89,7 @@ def pre_procession_request(request, model, lite=False):
                             adaptor = adaptor(model, field, key_with_filter)
                             value, new_get = adaptor.change_value(value, key, new_get)
                             if key in new_get:
-                                new_get[key] = value
+                                new_get.setlist(key, value)
                         except models.FieldDoesNotExist:
                             del new_get[key]
                 self.GET = new_get

@@ -30,6 +30,7 @@ class BaseReport(models.Model):
                               #'initial': true,
                               #'label': 'label 1',
                               #'help text: '****',
+                              #'other_fields': [],
                               #'widget': 'Select'}},}
 
     @property

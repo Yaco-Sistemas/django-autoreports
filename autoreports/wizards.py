@@ -92,14 +92,24 @@ class WizardField(forms.Form):
                                                             choices=filters,
                                                             widget=forms.CheckboxSelectMultiple,
                                                             required=False)
+        widgets = autoreport_field.get_widgets_available()
+        if widgets:
+            self.fields['widget'] = forms.ChoiceField(label=_('Other widget'),
+                                                      choices=widgets,
+                                                      required=False,
+                                                      help_text=_('Chose other widget'))
+
         if instance:
             field_name = autoreport_field.field_name
             field_options = instance.options.get(field_name)
+            widget_initial = self.instance.options.get('widget', None)
             if not field_options:
                 return
             self.fields['display'].initial = field_options.get('display', False)
             if filters:
                 self.fields['filters'].initial = field_options.get('filters', tuple())
+            if widgets:
+                self.fields['widget'].initial = widget_initial
             if autoreports_i18n:
                 for lang_code, lang_text in settings.LANGUAGES:
                     label = 'label_%s' % lang_code

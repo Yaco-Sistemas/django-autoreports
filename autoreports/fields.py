@@ -2,11 +2,10 @@ import collections
 
 from copy import copy
 
+from django import forms
 from django.conf import settings
 from django.contrib.admin.widgets import AdminSplitDateTime, AdminDateWidget
 from django.db.models import ObjectDoesNotExist
-from django.forms import (Select, TextInput, IntegerField, ValidationError,
-                          ModelMultipleChoiceField, MultipleChoiceField, CheckboxSelectMultiple)
 from django.template.loader import render_to_string
 from django.utils.translation import get_language
 from django.utils.translation import ugettext as _
@@ -56,6 +55,17 @@ class BaseReportField(object):
                 ('in', _('In (coma separated list)')),
                 #('isnull', _('Is empty')),)
                 )
+
+    @classmethod
+    def get_widgets_initial(self):
+        return ('', '-----')
+
+    @classmethod
+    def get_widgets_available(self):
+        return tuple()
+
+    def _get_widget_from_opts(self, opts):
+        return opts and opts.get('widget', None) or None
 
     def change_widget(self, field, opts=None):
         return field
@@ -176,11 +186,19 @@ class BaseReportField(object):
 
 class TextFieldReportField(BaseReportField):
 
+    @classmethod
+    def get_widgets_available(self):
+        return (self.get_widgets_initial(), ('textarea', _('Text Area')),)
+
     def get_filter_default(self):
         return 'icontains'
 
     def change_widget(self, field, opts=None):
-        field.widget = TextInput()
+        widget = self._get_widget_from_opts(opts)
+        if widget == 'textarea':
+            field.widget = forms.Textarea()
+        else:
+            field.widget = forms.TextInput()
         return field
 
     def extra_wizard_fields(self):
@@ -196,10 +214,10 @@ class TextFieldReportField(BaseReportField):
             field_options = self.instance.options.get(self.field_name, None)
             if field_options:
                 initial = field_options.get('other_fields', None)
-        return {'other_fields': MultipleChoiceField(label=_('Other fields to filter'),
+        return {'other_fields': forms.MultipleChoiceField(label=_('Other fields to filter'),
                                                     required=False,
                                                     choices=choices,
-                                                    widget=CheckboxSelectMultiple,
+                                                    widget=forms.CheckboxSelectMultiple,
                                                     initial=initial,
                                                     help_text=_('Choose other fields, when you filter with this field, you will search in these also'))}
 
@@ -217,7 +235,25 @@ class TextFieldReportField(BaseReportField):
                 )
 
 
-class ChoicesFieldReportField(TextFieldReportField):
+class ProviderSelectMultiple(object):
+
+    def change_value_multiple(self, value, key, request_get):
+        new_key = key.replace('__%s' % self.get_filter_default(), '__in')
+        request_get.setlist(new_key, value)
+        del request_get[key]
+
+    def change_widget_multiple(self, field, choices):
+        return forms.MultipleChoiceField(label=field.label,
+                                          choices=choices,
+                                          help_text=field.help_text,
+                                          initial=(field.initial,))
+
+
+class ChoicesFieldReportField(TextFieldReportField, ProviderSelectMultiple):
+
+    @classmethod
+    def get_widgets_available(self):
+        return (self.get_widgets_initial(), ('selectmultiple', _('Select Multiple')),)
 
     def get_value(self, obj, field_name=None):
         field_name = field_name or self.field_name_parsed
@@ -232,6 +268,8 @@ class ChoicesFieldReportField(TextFieldReportField):
     def change_value(self, value, key, request_get):
         if not value:
             del request_get[key]
+        elif isinstance(value, list):
+            self.change_value_multiple(value, key, request_get)
         return (value, request_get)
 
     @classmethod
@@ -244,7 +282,11 @@ class ChoicesFieldReportField(TextFieldReportField):
         return super(TextFieldReportField, self).extra_wizard_fields()
 
     def change_widget(self, field, opts=None):
-        field.widget.choices = [('', '----')] + field.widget.choices
+        widget = self._get_widget_from_opts(opts)
+        new_choices = [self.get_widgets_initial()] + field.widget.choices
+        if widget == 'selectmultiple':
+            field = self.change_widget_multiple(field, new_choices)
+        field.widget.choices = new_choices
         return field
 
 
@@ -271,7 +313,7 @@ class NumberFieldReportField(BaseReportField):
 class AutoNumberFieldReportField(NumberFieldReportField):
 
     def get_basic_field_form(self, form, field_name):
-        return IntegerField(label=self.get_verbose_name())
+        return forms.IntegerField(label=self.get_verbose_name())
 
 
 class DateFieldReportField(BaseReportField):
@@ -286,7 +328,7 @@ class DateFieldReportField(BaseReportField):
     def parser_date(self, value):
         try:
             return self.field.formfield().clean(value)
-        except ValidationError:
+        except forms.ValidationError:
             return value
 
     def change_value(self, value, key, request_get):
@@ -306,6 +348,10 @@ class DateFieldReportField(BaseReportField):
 
 
 class DateTimeFieldReportField(DateFieldReportField):
+
+    @classmethod
+    def get_widgets_available(self):
+        return (self.get_widgets_initial(), ('date', _('Date')),)
 
     def change_widget(self, field, opts=None):
         field.widget = AdminSplitDateTime()
@@ -337,7 +383,7 @@ class BooleanFieldReportField(BaseReportField):
                    ('0', _('No')),
                    ('1', _('Yes')),)
 
-        field.widget = Select(choices=choices)
+        field.widget = forms.Select(choices=choices)
         return field
 
     def change_value(self, value, key, request_get):
@@ -384,8 +430,12 @@ class RelatedReportField(BaseReportField):
 
 class RelatedReverseField(RelatedReportField):
 
+    @classmethod
+    def get_widgets_available(self):
+        return (self.get_widgets_initial(), ('selectmultiple', _('Select Multiple')),)
+
     def get_basic_field_form(self, form, field_name):
-        return ModelMultipleChoiceField(label=self.get_verbose_name(),
+        return forms.ModelMultipleChoiceField(label=self.get_verbose_name(),
                                         queryset=self.field.model.objects.all())
 
     def get_value(self, obj, field_name=None):
