@@ -379,12 +379,14 @@ def filtering_from_request(object_list, filters, report=None):
     else:
         filter_list = {}
         options = report.options
+        model = object_list.model
         for fil, value in filters.items():
             fil_split = fil.split('__')
-            field = SEPARATED_FIELD.join(fil_split[:-1])
+            field_name = SEPARATED_FIELD.join(fil_split[:-1])
+            field_name_opts = transmeta_inverse_field_name(model, field_name)
             prefix = '__'.join(fil_split[:-2])
             filter_operator = fil_split[-1]
-            field_options = options.get(field, None)
+            field_options = options.get(field_name_opts, None)
             if not field_options or not field_options.get('other_fields', None):
                 object_list = object_list.filter(**{fil: value})
                 filter_list[fil] = value
@@ -396,6 +398,8 @@ def filtering_from_request(object_list, filters, report=None):
                 for other_field in other_fields:
                     if prefix:
                         other_field = "%s__%s" % (prefix, other_field)
+                    m, f = get_field_from_model(model, other_field)
+                    other_field = transmeta_field_name(f, other_field)
                     other_field = str("%s__%s" % (other_field, filter_operator))
                     filter_or = filter_or | Q(**{other_field: value})
                     filter_list[fil].append({other_field: value})
@@ -404,8 +408,18 @@ def filtering_from_request(object_list, filters, report=None):
 
 
 def transmeta_field_name(field, field_name):
-    if not field_name.endswith(field.name) and has_transmeta():
+    if has_transmeta() and not field_name.endswith(field.name):
         return transmeta.get_real_fieldname(field_name, get_language())
+    return field_name
+
+
+def transmeta_inverse_field_name(model, field_name):
+    if has_transmeta():
+        lang = get_language()
+        field_name_generic = field_name[:-(len(lang) + 1)]
+        field_generic = getattr(model, field_name_generic, None)
+        if field_generic and isinstance(field_generic, property):
+            return field_name_generic
     return field_name
 
 
