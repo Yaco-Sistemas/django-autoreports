@@ -109,11 +109,10 @@ class ReportAdmin(ReportApi):
             'title': cl.title,
             'is_popup': cl.is_popup,
             'cl': cl,
-            'has_add_permission': False,
             'root_path': self.admin_site.root_path,
             'app_label': app_label,
             'opts': self.opts,
-            'has_add_permission': request.user.is_superuser
+            'has_add_permission': False,
         }
         context.update(extra_context or {})
         return context
@@ -130,7 +129,10 @@ class ReportAdmin(ReportApi):
         cl_options['list_per_page'] = 100
         cl_options['prefix_url'] = 'wizard/'
         model = Report
-        context = self._get_extra_context_fake_change_list(model, request, extra_context, cl_options)
+        extra_context = extra_context or {}
+        context = {'has_add_permission': request.user.is_superuser}
+        context.update(extra_context)
+        context = self._get_extra_context_fake_change_list(model, request, context, cl_options)
         opts = model._meta
         app_label = opts.app_label
         content_type = ContentType.objects.get_for_model(self.model)

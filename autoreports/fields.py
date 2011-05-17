@@ -189,6 +189,8 @@ class TextFieldReportField(BaseReportField):
         fields = get_fields_from_model(self.model, adaptors=(TextFieldReportField,))
         current_field_name = self.field_name.split(SEPARATED_FIELD)[-1]
         choices = [(f['name'], f['verbose_name']) for f in fields[0] if f['name'] != current_field_name]
+        if not choices:
+            return {}
         initial = None
         if self.instance:
             field_options = self.instance.options.get(self.field_name, None)
