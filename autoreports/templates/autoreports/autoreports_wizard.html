@@ -68,9 +68,11 @@
 
                     // enable dragging again
                     var label_idx = $(this).attr('rel');
-                    dragged[label_idx].draggable.draggable("enable", 1);
-                    $(dragged[label_idx].draggable).removeClass("using");
-                    dragged[label_idx] = null;
+                    if (label_idx) {
+                        dragged[label_idx].draggable.draggable("enable", 1);
+                        $(dragged[label_idx].draggable).removeClass("using");
+                        dragged[label_idx] = null;
+                    }
                     return false;
                 });
 
