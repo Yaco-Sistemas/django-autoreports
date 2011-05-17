@@ -80,7 +80,7 @@ def pre_procession_request(request, model, lite=False):
                 if lite:
                     self.GET = QueryDict("")
                     return
-                for key, value in new_get.iterlists():
+                for key, value in new_get.lists():
                     if not key.startswith('__'):
                         key_with_filter = '__'.join(key.split('__')[:-1])
                         try:

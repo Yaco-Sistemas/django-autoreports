@@ -64,6 +64,9 @@ class BaseReportField(object):
     def get_widgets_available(self):
         return tuple()
 
+    def get_change_filter(self, fil, opts):
+        return (fil, dict(self.get_filters())[fil])
+
     def _get_widget_from_opts(self, opts):
         return opts and opts.get('widget', None) or None
 
@@ -116,9 +119,10 @@ class BaseReportField(object):
                 fields_form_display[self.field_name] = copy(field)
             for fil in filters:
                 field_copy = copy(field)
+                fil, verbose_fil = self.get_change_filter(fil, opts)
                 field_name_subfix = "%s__%s" % (self.field_name_parsed, fil)
                 if autoreports_subfix:
-                    field_label = u"%s (%s)" % (field_copy.label, dict(self.get_filters())[fil])
+                    field_label = u"%s (%s)" % (field_copy.label, verbose_fil)
                     field_copy.label = field_label
                 fields_form_filter[field_name_subfix] = self.change_widget(field_copy, opts)
         else:
@@ -237,10 +241,16 @@ class TextFieldReportField(BaseReportField):
 
 class ProviderSelectMultiple(object):
 
-    def change_value_multiple(self, value, key, request_get):
-        new_key = key.replace('__%s' % self.get_filter_default(), '__in')
-        request_get.setlist(new_key, value)
-        del request_get[key]
+    @classmethod
+    def get_widgets_available_multiple(self):
+        return ('selectmultiple', _('Select Multiple'))
+
+    def get_change_filter(self, fil, opts):
+        widget = self._get_widget_from_opts(opts)
+        slug_multiple = self.get_widgets_available_multiple()[0]
+        if widget == slug_multiple:
+            return ('in', _('In'))
+        return super(ProviderSelectMultiple, self).get_change_filter(fil, opts)
 
     def change_widget_multiple(self, field, choices):
         return forms.MultipleChoiceField(label=field.label,
@@ -248,12 +258,20 @@ class ProviderSelectMultiple(object):
                                           help_text=field.help_text,
                                           initial=(field.initial,))
 
+    def change_widget(self, field, opts=None):
+        widget = self._get_widget_from_opts(opts)
+        new_choices = [self.get_widgets_initial()] + field.widget.choices
+        if widget == 'selectmultiple':
+            field = self.change_widget_multiple(field, new_choices)
+        field.widget.choices = new_choices
+        return field
 
-class ChoicesFieldReportField(TextFieldReportField, ProviderSelectMultiple):
+
+class ChoicesFieldReportField(ProviderSelectMultiple, TextFieldReportField):
 
     @classmethod
     def get_widgets_available(self):
-        return (self.get_widgets_initial(), ('selectmultiple', _('Select Multiple')),)
+        return (self.get_widgets_initial(), self.get_widgets_available_multiple())
 
     def get_value(self, obj, field_name=None):
         field_name = field_name or self.field_name_parsed
@@ -266,10 +284,8 @@ class ChoicesFieldReportField(TextFieldReportField, ProviderSelectMultiple):
         return 'exact'
 
     def change_value(self, value, key, request_get):
-        if not value:
+        if not value[0]:
             del request_get[key]
-        elif isinstance(value, list):
-            self.change_value_multiple(value, key, request_get)
         return (value, request_get)
 
     @classmethod
@@ -281,14 +297,6 @@ class ChoicesFieldReportField(TextFieldReportField, ProviderSelectMultiple):
     def extra_wizard_fields(self):
         return super(TextFieldReportField, self).extra_wizard_fields()
 
-    def change_widget(self, field, opts=None):
-        widget = self._get_widget_from_opts(opts)
-        new_choices = [self.get_widgets_initial()] + field.widget.choices
-        if widget == 'selectmultiple':
-            field = self.change_widget_multiple(field, new_choices)
-        field.widget.choices = new_choices
-        return field
-
 
 class NumberFieldReportField(BaseReportField):
 
@@ -296,7 +304,7 @@ class NumberFieldReportField(BaseReportField):
         return 'exact'
 
     def change_value(self, value, key, request_get):
-        if value.isnumeric():
+        if value and len(value) > 0 and value[0].isnumeric():
             return (value, request_get)
         del request_get[key]
         return (value, request_get)
@@ -405,7 +413,11 @@ class BooleanFieldReportField(BaseReportField):
                 )
 
 
-class RelatedReportField(BaseReportField):
+class RelatedReportField(ProviderSelectMultiple, BaseReportField):
+
+    @classmethod
+    def get_widgets_available(self):
+        return (self.get_widgets_initial(), self.get_widgets_available_multiple(),)
 
     def _treatment_transmeta(self):
         pass
@@ -429,10 +441,6 @@ class RelatedReportField(BaseReportField):
 
 
 class RelatedReverseField(RelatedReportField):
-
-    @classmethod
-    def get_widgets_available(self):
-        return (self.get_widgets_initial(), ('selectmultiple', _('Select Multiple')),)
 
     def get_basic_field_form(self, form, field_name):
         return forms.ModelMultipleChoiceField(label=self.get_verbose_name(),
