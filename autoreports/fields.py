@@ -377,36 +377,49 @@ class AutoNumberFieldReportField(NumberFieldReportField):
 
 
 class BaseDateFieldReportField(BaseReportField):
-    pass
+
+    def change_value_date_widget(self, value, key, request_get, field=None):
+        if len(value) <= 0 or not value[0]:
+            del request_get[key]
+        return ([unicode(self.parser_date(value, field))], request_get)
+
+    def change_value_datetime_widget(self, value, key, request_get, field=None):
+        if key.endswith('_0'):
+            key_1 = key.replace('_0', '_1')
+            if not key_1 in request_get:
+                return value
+            key_without_prefix = key.replace('_0', '')
+            if request_get[key] and request_get[key_1]:
+                value = "%s %s" % (request_get[key],
+                                    request_get[key_1])
+                value = [unicode(self.parser_date([value], field))]
+                request_get.setlist(key_without_prefix, value)
+            initial_date = 'initial-%s' % key_without_prefix
+            if request_get.get(initial_date, None):
+                del request_get['initial-%s' % key_without_prefix]
+            del request_get[key]
+            del request_get[key_1]
+        return (value, request_get)
 
 
 class DateFieldReportField(BaseDateFieldReportField):
-
-    @classmethod
-    def get_widgets_available(self):
-        return (self.get_widgets_initial(), ('datetime', _('DateTime Widget')),)
 
     def get_filter_default(self):
         return 'exact'
 
     def change_widget(self, field, opts=None):
-        widget = self._get_widget_from_opts(opts)
-        if widget == 'datetime':
-            field.widget = AdminSplitDateTime()
-        else:
-            field.widget = AdminDateWidget()
+        field.widget = AdminDateWidget()
         return field
 
-    def parser_date(self, value):
+    def parser_date(self, value, field=None):
         try:
-            return self.field.formfield().clean(value[0])
+            field = field or self.field.formfield()
+            return field.clean(value[0])
         except forms.ValidationError:
             return value
 
     def change_value(self, value, key, request_get):
-        if len(value) <= 0 or not value[0]:
-            del request_get[key]
-        return ([unicode(self.parser_date(value))], request_get)
+        return self.change_value_date_widget(value, key, request_get)
 
     @classmethod
     def get_filters(self):
@@ -428,28 +441,17 @@ class DateTimeFieldReportField(DateFieldReportField):
     def change_widget(self, field, opts=None):
         widget = self._get_widget_from_opts(opts)
         if widget == 'date':
+            field = forms.DateField(label=field.label,
+                                    help_text=field.help_text)
             field.widget = AdminDateWidget()
         else:
             field.widget = AdminSplitDateTime()
         return field
 
     def change_value(self, value, key, request_get):
-        if key.endswith('_0'):
-            key_1 = key.replace('_0', '_1')
-            if not key_1 in request_get:
-                return value
-            key_without_prefix = key.replace('_0', '')
-            if request_get[key] and request_get[key_1]:
-                value = "%s %s" % (request_get[key],
-                                    request_get[key_1])
-                value = [unicode(self.parser_date([value]))]
-                request_get.setlist(key_without_prefix, value)
-            initial_date = 'initial-%s' % key_without_prefix
-            if request_get.get(initial_date, None):
-                del request_get['initial-%s' % key_without_prefix]
-            del request_get[key]
-            del request_get[key_1]
-        return (value, request_get)
+        if key.endswith('_0') or key.endswith('_1'):
+            return self.change_value_datetime_widget(value, key, request_get, field=forms.DateTimeField())
+        return self.change_value_date_widget(value, key, request_get, field=forms.DateField())
 
 
 class BooleanFieldReportField(BaseReportField):
