@@ -380,7 +380,7 @@ class BaseDateFieldReportField(BaseReportField):
     pass
 
 
-class DateFieldReportField(BaseReportField):
+class DateFieldReportField(BaseDateFieldReportField):
 
     @classmethod
     def get_widgets_available(self):
@@ -406,7 +406,7 @@ class DateFieldReportField(BaseReportField):
     def change_value(self, value, key, request_get):
         if len(value) <= 0 or not value[0]:
             del request_get[key]
-        return (self.parser_date(value), request_get)
+        return ([unicode(self.parser_date(value))], request_get)
 
     @classmethod
     def get_filters(self):
@@ -442,8 +442,8 @@ class DateTimeFieldReportField(DateFieldReportField):
             if request_get[key] and request_get[key_1]:
                 value = "%s %s" % (request_get[key],
                                     request_get[key_1])
-                value = self.parser_date(value)
-                request_get[key_without_prefix] = value
+                value = [unicode(self.parser_date([value]))]
+                request_get.setlist(key_without_prefix, value)
             initial_date = 'initial-%s' % key_without_prefix
             if request_get.get(initial_date, None):
                 del request_get['initial-%s' % key_without_prefix]
