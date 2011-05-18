@@ -111,13 +111,21 @@ form.report div.prefixes {
     display: none;
 }
 
+.adaptor{
+    margin-bottom: 3em;
+}
+
+.adaptor .funcAlert{
+    padding-left: 50px;
+    background: url(warning.png) left top no-repeat;
+}
+
 .adaptor h2.removeAdaptor {
     background: url("../img/admin/default-bg.gif") repeat-x scroll left top #7CA0C7;
     color: white;
     font-size: 11px;
     font-weight: bold;
     margin: 0;
-    margin-bottom: 3em;
     padding: 2px 5px 3px;
     text-align: left;
 }

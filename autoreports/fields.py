@@ -615,6 +615,8 @@ class FuncField(BaseReportField):
             code = highlight(code, PythonLexer(), HtmlFormatter(cssclass="syntax hiddenElement"))
         except TypeError:
             code = ""
+        except ImportError:
+            code = ""
         adaptor_help = render_to_string("autoreports/fields/func_field_wizard.html", {'code': code})
         return "<div class='adaptor'>%s %s %s<h2 class='removeAdaptor'>%s</h2></div>" % (modelfieldform,
                                                                                          adaptor_help,
