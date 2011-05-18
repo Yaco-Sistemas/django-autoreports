@@ -247,15 +247,11 @@ def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD, api=
                                             separated_field.join(field_name_new),
                                             separated_field=separated_field)
                 if isinstance(val, basestring):
-                    if not val in value_list:
-                        value_list.append(val)
+                    value_list.append(val)
                 elif is_iterable(val):
-                    for v in val:
-                        if v and not v in value_list:
-                            value_list.append(v)
+                    value_list.append(val)
                 else:
-                    if not val in value_list:
-                        value_list.append(val)
+                    value_list.append(val)
             return value_list
         elif isinstance(value, models.Model):
             return get_value_from_object(value,
@@ -273,7 +269,16 @@ def get_parser_value(value):
     elif isinstance(value, models.Model):
         return unicode(value).encode('utf8')
     elif is_iterable(value):
-        return ', '.join([get_parser_value(item) for item in value])
+        commas_separated_values = []
+        for item in value:
+            parsed_val = get_parser_value(item)
+            if isinstance(item, basestring):
+                commas_separated_values.append(parsed_val)
+            elif is_iterable(item):
+                commas_separated_values.append("[%s]" % parsed_val)
+            else:
+                commas_separated_values.append(parsed_val)
+        return ', '.join(commas_separated_values)
     return get_parser_value(unicode(value))
 
 
