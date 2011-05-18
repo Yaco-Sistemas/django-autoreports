@@ -23,10 +23,12 @@
                     var is_admin = false;
                 {% endblock %}
 
+                var dragging_title_top = 150;
+
                 var wizard = $('.wizard');
                 $(".droppable").css({width: wizard.css('width'),
                                      height: wizard.height() + 20 + 'px'});
-                $(".droppable h2").css({top: $(document).scrollTop() + 150 + 'px'});
+                $(".droppable h2").css({top: $(document).scrollTop() + dragging_title_top + 'px'});
 
                 function initialWizard() {
                     // enable just for those which haven't been explicitly disabled
@@ -35,9 +37,11 @@
                         start: function(event, ui){
                             $(".droppable").addClass('dropping');
                             var wizard = $('.wizard');
+                            wiz_height = wizard.height() + 20;
+                            new_height = Math.max(wiz_height, $(document).scrollTop() + 300);
                             $(".droppable").css({width: wizard.css('width'),
-                                                 height: wizard.height() + 20 + 'px'});
-                            $(".droppable h2").css({top: $(document).scrollTop() + 150 + 'px'});
+                                                 height: new_height + 'px'});
+                            $(".droppable h2").css({top: $(document).scrollTop() + dragging_title_top + 'px'});
                         },
                         stop: function(event, ui){
                             $(".droppable").removeClass('dropping');
