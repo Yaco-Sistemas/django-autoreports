@@ -56,12 +56,12 @@
                 $(".collapsable h2").live("click", function() {
                     var fieldset = $(this).parent();
                     if($(this).hasClass("hidden")) {
-                        fieldset.find("div").slideDown();
-                        fieldset.parent(".adaptor").find(".adaptorHelp").slideDown();
+                        fieldset.find("div").fadeIn();
+                        fieldset.parent(".adaptor").find(".adaptorHelp").fadeIn();
                         $(this).removeClass("hidden");
                     } else {
-                        fieldset.find("div").slideUp();
-                        fieldset.parent(".adaptor").find(".adaptorHelp").slideUp();
+                        fieldset.find("div").fadeOut();
+                        fieldset.parent(".adaptor").find(".adaptorHelp").fadeOut();
                         $(this).addClass("hidden");
                     }
                     return false;

@@ -116,8 +116,9 @@ form.report div.prefixes {
 }
 
 .adaptor .funcAlert{
-    padding-left: 50px;
-    background: url(warning.png) left top no-repeat;
+    padding: 10px 10px 10px 60px;
+    border: 1px solid #ccc;
+    background: url(warning.png) 10px 10px no-repeat;
 }
 
 .adaptor h2.removeAdaptor {
