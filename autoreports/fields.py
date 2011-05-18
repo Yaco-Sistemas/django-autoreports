@@ -1,3 +1,5 @@
+import itertools
+
 from copy import copy
 
 from django import forms
@@ -56,7 +58,7 @@ class BaseReportField(object):
 
     @classmethod
     def get_widgets_initial(self):
-        return ('', '-----')
+        return ('', '---------')
 
     @classmethod
     def get_widgets_available(self):
@@ -268,18 +270,19 @@ class ProviderSelectSigle(object):
                                   help_text=field.help_text,
                                   initial=field_initial)
         if widget == 'single__radiobuttons':
-            field.widget = forms.RadioSelect()
+            field.widget = forms.RadioSelect(choices=field.widget.choices)
         return field
 
     def change_widget(self, field, opts=None):
         widget = self._get_widget_from_opts(opts)
-        if isinstance(field.widget.choices, list):
-            new_choices = [self.get_widgets_initial()] + field.widget.choices
+        choices = field.widget.choices
+        choice_empty = [self.get_widgets_initial()]
+        if isinstance(choices, list):
+            new_choices = choice_empty + choices
         else:
-            new_choices = [self.get_widgets_initial()] + [choice for choice in field.widget.choices]
+            new_choices = itertools.chain(choice_empty, choices)
         if widget and widget.startswith(self.slug_single):
             field = self.change_widget_sigle(field, new_choices, widget)
-        field.widget.choices = new_choices
         return field
 
 
@@ -313,13 +316,20 @@ class ProviderSelectMultiple(object):
 
     def change_widget(self, field, opts=None):
         widget = self._get_widget_from_opts(opts)
-        if isinstance(field.widget.choices, list):
-            new_choices = [self.get_widgets_initial()] + field.widget.choices
+        choices = field.widget.choices
+        if isinstance(choices, list):
+            new_choices = choices
         else:
-            new_choices = field.widget.choices
+            new_choices = itertools.islice(choices, 1, None)
         if widget and widget.startswith(self.slug_multiple):
             field = self.change_widget_multiple(field, new_choices, widget)
-        field.widget.choices = new_choices
+        elif not widget:
+            choice_empty = [self.get_widgets_initial()]
+            if isinstance(choices, list):
+                new_choices = choice_empty + choices
+            else:
+                new_choices = choices
+            field.choices = new_choices
         return field
 
 
