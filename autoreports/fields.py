@@ -1,5 +1,3 @@
-import collections
-
 from copy import copy
 
 from django import forms
@@ -12,7 +10,7 @@ from django.utils.translation import ugettext as _
 
 from autoreports.forms import BaseReportForm
 from autoreports.model_forms import modelform_factory
-from autoreports.utils import (get_fields_from_model, get_field_from_model,
+from autoreports.utils import (is_iterable, get_fields_from_model, get_field_from_model,
                                parsed_field_name, transmeta_field_name, SEPARATED_FIELD)
 from autoreports.wizards import ModelFieldForm, WizardField, WizardAdminField
 
@@ -244,65 +242,34 @@ class TextFieldReportField(BaseReportField):
                 )
 
 
-class ProviderSelectMultiple(object):
-
-    @classmethod
-    def get_widgets_available(self):
-        return (self.get_widgets_initial(), self.get_widgets_available_multiple())
-
-    @classmethod
-    def get_widgets_available_multiple(self):
-        return ('selectmultiple', _('Select Multiple'))
-
-    def get_change_filter(self, fil, opts):
-        widget = self._get_widget_from_opts(opts)
-        slug_multiple = self.get_widgets_available_multiple()[0]
-        if widget == slug_multiple:
-            return ('in', _('In'))
-        return super(ProviderSelectMultiple, self).get_change_filter(fil, opts)
-
-    def change_widget_multiple(self, field, choices):
-        return forms.MultipleChoiceField(label=field.label,
-                                          choices=choices,
-                                          help_text=field.help_text,
-                                          initial=(field.initial,))
-
-    def change_widget(self, field, opts=None):
-        widget = self._get_widget_from_opts(opts)
-        if isinstance(field.widget.choices, list):
-            new_choices = [self.get_widgets_initial()] + field.widget.choices
-        else:
-            new_choices = field.widget.choices
-        slug_multiple = self.get_widgets_available_multiple()[0]
-        if widget == slug_multiple:
-            field = self.change_widget_multiple(field, new_choices)
-        field.widget.choices = new_choices
-        return field
-
-
 class ProviderSelectSigle(object):
 
+    slug_single = 'single'
+
     @classmethod
     def get_widgets_available(self):
-        return (self.get_widgets_initial(), self.get_widgets_available_single())
+        return (self.get_widgets_initial(),) + self.get_widgets_available_single()
 
     @classmethod
     def get_widgets_available_single(self):
-        return ('select', _('Select'))
+        return (('single__select', _('Select')),
+                ('single__radiobuttons', _('Radio buttons')))
 
     def get_change_filter(self, fil, opts):
         widget = self._get_widget_from_opts(opts)
-        slug_single = self.get_widgets_available_single()[0]
-        if widget == slug_single:
+        if widget and widget.startswith(self.slug_single):
             return ('exact', _('Exact'))
         return super(ProviderSelectSigle, self).get_change_filter(fil, opts)
 
-    def change_widget_sigle(self, field, choices):
+    def change_widget_sigle(self, field, choices, widget):
         field_initial = field.initial and field.initial[0] or None
-        return forms.ChoiceField(label=field.label,
-                                 choices=choices,
-                                 help_text=field.help_text,
-                                 initial=field_initial)
+        field = forms.ChoiceField(label=field.label,
+                                  choices=choices,
+                                  help_text=field.help_text,
+                                  initial=field_initial)
+        if widget == 'single__radiobuttons':
+            field.widget = forms.RadioSelect()
+        return field
 
     def change_widget(self, field, opts=None):
         widget = self._get_widget_from_opts(opts)
@@ -310,9 +277,48 @@ class ProviderSelectSigle(object):
             new_choices = [self.get_widgets_initial()] + field.widget.choices
         else:
             new_choices = [self.get_widgets_initial()] + [choice for choice in field.widget.choices]
-        slug_single = self.get_widgets_available_single()[0]
-        if widget == slug_single:
-            field = self.change_widget_sigle(field, new_choices)
+        if widget and widget.startswith(self.slug_single):
+            field = self.change_widget_sigle(field, new_choices, widget)
+        field.widget.choices = new_choices
+        return field
+
+
+class ProviderSelectMultiple(object):
+
+    slug_multiple = 'multiple'
+
+    @classmethod
+    def get_widgets_available(self):
+        return (self.get_widgets_initial(),) + self.get_widgets_available_multiple()
+
+    @classmethod
+    def get_widgets_available_multiple(self):
+        return (('multiple__select', _('Select Multiple')),
+                ('multiple__checkboxes', _('CheckBox Multiple')),)
+
+    def get_change_filter(self, fil, opts):
+        widget = self._get_widget_from_opts(opts)
+        if widget and widget.startswith(self.slug_multiple):
+            return ('in', _('In'))
+        return super(ProviderSelectMultiple, self).get_change_filter(fil, opts)
+
+    def change_widget_multiple(self, field, choices, widget):
+        field = forms.MultipleChoiceField(label=field.label,
+                                          choices=choices,
+                                          help_text=field.help_text,
+                                          initial=(field.initial,))
+        if widget == 'multiple__checkboxes':
+            field.widget = forms.CheckboxSelectMultiple()
+        return field
+
+    def change_widget(self, field, opts=None):
+        widget = self._get_widget_from_opts(opts)
+        if isinstance(field.widget.choices, list):
+            new_choices = [self.get_widgets_initial()] + field.widget.choices
+        else:
+            new_choices = field.widget.choices
+        if widget and widget.startswith(self.slug_multiple):
+            field = self.change_widget_multiple(field, new_choices, widget)
         field.widget.choices = new_choices
         return field
 
@@ -370,18 +376,30 @@ class AutoNumberFieldReportField(NumberFieldReportField):
         return forms.IntegerField(label=self.get_verbose_name())
 
 
+class BaseDateFieldReportField(BaseReportField):
+    pass
+
+
 class DateFieldReportField(BaseReportField):
+
+    @classmethod
+    def get_widgets_available(self):
+        return (self.get_widgets_initial(), ('datetime', _('DateTime Widget')),)
 
     def get_filter_default(self):
         return 'exact'
 
     def change_widget(self, field, opts=None):
-        field.widget = AdminDateWidget()
+        widget = self._get_widget_from_opts(opts)
+        if widget == 'datetime':
+            field.widget = AdminSplitDateTime()
+        else:
+            field.widget = AdminDateWidget()
         return field
 
     def parser_date(self, value):
         try:
-            return self.field.formfield().clean(value)
+            return self.field.formfield().clean(value[0])
         except forms.ValidationError:
             return value
 
@@ -405,10 +423,14 @@ class DateTimeFieldReportField(DateFieldReportField):
 
     @classmethod
     def get_widgets_available(self):
-        return (self.get_widgets_initial(), ('date', _('Date')),)
+        return (self.get_widgets_initial(), ('date', _('Date Widget')),)
 
     def change_widget(self, field, opts=None):
-        field.widget = AdminSplitDateTime()
+        widget = self._get_widget_from_opts(opts)
+        if widget == 'date':
+            field.widget = AdminDateWidget()
+        else:
+            field.widget = AdminSplitDateTime()
         return field
 
     def change_value(self, value, key, request_get):
@@ -466,7 +488,7 @@ class RelatedReportField(BaseReportField):
         pass
 
     def _post_preccessing_get_value(self, value):
-        if isinstance(value, collections.Iterable):
+        if is_iterable(value):
             if len(value) == 0:
                 return None
             elif len(value) == 1:
@@ -474,7 +496,7 @@ class RelatedReportField(BaseReportField):
         return value
 
     def get_filter_default(self):
-        return 'exact'
+        return 'in'
 
     def change_value(self, value, key, request_get):
         if len(value) <= 0 or not value[0]:
@@ -483,7 +505,7 @@ class RelatedReportField(BaseReportField):
 
     @classmethod
     def get_filters(self):
-        return (('exact', _('Exact')),
+        return (('in', _('In')),
                 #('isnull', _('Is empty')),
                )
 
@@ -510,6 +532,15 @@ class RelatedDirectField(RelatedReportField):
 
 
 class ForeingKeyReportField(ProviderSelectMultiple, RelatedDirectField):
+
+    @classmethod
+    def get_filters(self):
+        return (('exact', _('Exact')),
+                #('isnull', _('Is empty')),
+               )
+
+    def get_filter_default(self):
+        return 'exact'
 
     def get_value(self, obj, field_name=None):
         try:

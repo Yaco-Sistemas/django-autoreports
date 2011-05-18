@@ -97,7 +97,7 @@ class WizardField(forms.Form):
             self.fields['widget'] = forms.ChoiceField(label=_('Other widget'),
                                                       choices=widgets,
                                                       required=False,
-                                                      help_text=_('Chose other widget'))
+                                                      help_text=_('Chose other widget. If you change the widget it\'s possible that the filter change also'))
 
         for key, field in autoreport_field.extra_wizard_fields().items():
             self.fields[key] = field

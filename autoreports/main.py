@@ -20,7 +20,7 @@ class AutoReportChangeList(ChangeList):
             filters, query_set = filtering_from_request(self.request, query_set, report=self.report)
             self._adavanced_filters = filters
         except ValidationError:
-            self._adavanced_filters = filters
+            self._adavanced_filters = None
         return query_set
 
     def url_for_result(self, result):
