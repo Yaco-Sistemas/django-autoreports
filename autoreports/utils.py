@@ -322,7 +322,7 @@ def get_fields_from_model(model, prefix=None, ignore_models=None, adaptors=None)
             model_relation = get_model_of_relation(field)
             if model_relation in ignore_models:
                 continue
-            if issubclass(model_relation, model):
+            if issubclass(model, model_relation) and field_name.endswith('_ptr'):
                 continue
             field_data['verbose_name'] = adaptor.get_verbose_name()
             model_relation = get_model_of_relation(field)
