@@ -311,7 +311,7 @@ class ProviderSelectMultiple(object):
                                           help_text=field.help_text,
                                           initial=(field.initial,))
         if widget == 'multiple__checkboxes':
-            field.widget = forms.CheckboxSelectMultiple()
+            field.widget = forms.CheckboxSelectMultiple(choices=choices)
         return field
 
     def change_widget(self, field, opts=None):
