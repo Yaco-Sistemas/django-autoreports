@@ -265,6 +265,8 @@ def get_parser_value(value):
     if not value:
         return unicode(value)
     elif isinstance(value, basestring):
+        if isinstance(value, str):
+            value = unicode(value, 'utf-8')
         return value.encode('utf8')
     elif isinstance(value, models.Model):
         return unicode(value).encode('utf8')
