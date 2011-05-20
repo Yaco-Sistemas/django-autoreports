@@ -14,7 +14,6 @@
  # along with this programe.  If not, see <http://www.gnu.org/licenses/>.
 
 from django import template
-from django.conf import settings
 from django.conf.urls.defaults import patterns, url
 from django.contrib import admin
 from django.contrib.admin.options import IncorrectLookupParameters
@@ -24,15 +23,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
 from django.utils.functional import update_wrapper
 
 from autoreports.api import ReportApi
 from autoreports.main import AutoReportChangeList
 from autoreports.models import Report
-from autoreports.utils import get_fields_from_model, get_adaptors_from_report
 from autoreports.views import reports_view, set_filters_search_fields
-from autoreports.wizards import ReportNameAdminForm, ReportNameForm, ModelFieldForm, WizardField
+from autoreports.wizards import ReportNameAdminForm
 
 
 class ReportAdmin(ReportApi):
@@ -147,6 +144,13 @@ class ReportAdmin(ReportApi):
             'autoreports/admin/report_list.html',
         ], context, context_instance=template.RequestContext(request))
 
+    def _get_context_wizard(self, extra_context=None):
+        extra_context = extra_context or {}
+        context = {'opts': self.opts,
+                   'template_base': "admin/base_site.html"}
+        context.update(extra_context)
+        return context
+
     def report_wizard(self, request,
                             template_name='autoreports/admin/autoreports_wizard.html',
                             extra_context=None,
@@ -155,7 +159,7 @@ class ReportAdmin(ReportApi):
                             content_type=None):
         return self.report_api_wizard(request,
                                       template_name=template_name,
-                                      extra_context=extra_context,
+                                      extra_context=self._get_context_wizard(extra_context),
                                       model=model,
                                       form_top_class=form_top_class,
                                       content_type=content_type)
@@ -167,75 +171,16 @@ class ReportAdmin(ReportApi):
                           form_top_class=ReportNameAdminForm,
                           content_type=None):
         report = model.objects.get(pk=report_id)
+        extra_context = extra_context or {}
+        context = {'opts': self.opts}
+        context.update(extra_context)
         return self.report_api_wizard(request,
                                       report=report,
                                       template_name=template_name,
-                                      extra_context=extra_context,
+                                      extra_context=self._get_context_wizard(extra_context),
                                       model=model,
                                       form_top_class=form_top_class,
                                       content_type=content_type)
-
-    def report_api_wizard(self, request,
-                          report=None,
-                          template_name='autoreports/admin/autoreports_wizard.html',
-                          extra_context=None,
-                          model=Report,
-                          form_top_class=ReportNameForm,
-                          model_to_export=None,
-                          content_type=None):
-        model_to_export = model_to_export or self.model
-        content_type = content_type or ContentType.objects.get_for_model(model_to_export)
-        data = None
-        adaptors = []
-        form_top_initial = {}
-        if request.method == 'POST':
-            data = request.POST
-        elif report:
-            adaptors = get_adaptors_from_report(report)
-            form_top_initial['prefixes'] = ", ".join([unicode(adaptor.get_form().prefix) for adaptor in adaptors])
-        form_top = form_top_class(instance=report, data=data, initial=form_top_initial)
-        options = {}
-        if form_top.is_valid():
-            for prefix in form_top.cleaned_data.get('prefixes', []):
-                model_field_form = ModelFieldForm(data=data,
-                                                  prefix=prefix)
-                if model_field_form.is_valid():
-                    field_name = model_field_form.cleaned_data.get('field_name')
-                    adaptor = model_field_form.get_adaptor()
-                    wizardfield = WizardField(data=data,
-                                              autoreport_field=adaptor,
-                                              prefix=prefix)
-                    if wizardfield.is_valid():
-                        options[field_name] = wizardfield.cleaned_data
-            name = form_top.cleaned_data.get('name', None) or 'report of %s' % unicode(model_to_export._meta.verbose_name)
-            report_created = self._create_report(model, content_type, name, options, form_top.instance)
-            redirect = report_created.get_redirect_wizard(report)
-            return HttpResponseRedirect(redirect)
-        fields, funcs = get_fields_from_model(content_type.model_class())
-        context = {'add': report is None,
-                   'report': report,
-                   'opts': self.opts,
-                   'fields': fields,
-                   'funcs': funcs,
-                   'ADMIN_MEDIA_PREFIX': settings.ADMIN_MEDIA_PREFIX,
-                   'template_base': "admin/base_site.html",
-                   'form_top': form_top,
-                   'module_name': content_type.model,
-                   'app_label': content_type.app_label,
-                   'adaptors': adaptors,
-                  }
-        extra_context = extra_context or {}
-        context.update(extra_context)
-        return render_to_response(template_name,
-                                  context,
-                                  context_instance=RequestContext(request))
-
-    def _create_report(self, model, content_type, name, options, report=None):
-        report.content_type = content_type
-        report.name = name
-        report.options = options
-        report.save()
-        return report
 
     def report_view(self, request, report_id, queryset=None, template_name='autoreports/admin/autoreports_form.html', extra_context=None):
         report = Report.objects.get(pk=report_id)

@@ -15,15 +15,20 @@
 
 from django.conf import settings
 from django.contrib.admin import ModelAdmin
+from django.contrib.contenttypes.models import ContentType
+from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.datastructures import SortedDict
 
 
 from autoreports.forms import ReportFilterForm, ReportDisplayForm
+from autoreports.models import Report
 from autoreports.model_forms import modelform_factory
-from autoreports.utils import get_available_formats, get_field_from_model, get_adaptor
-from autoreports.views import EXCLUDE_FIELDS
+from autoreports.utils import (get_fields_from_model, get_available_formats,
+                               get_field_from_model, get_adaptor, EXCLUDE_FIELDS,
+                               get_adaptors_from_report)
+from autoreports.wizards import ReportNameForm, ModelFieldForm, WizardField
 
 
 class ReportApi(object):
@@ -143,6 +148,67 @@ class ReportApi(object):
         return render_to_response(template_name,
                                  context,
                                  context_instance=RequestContext(request))
+
+    def report_api_wizard(self, request,
+                          report=None,
+                          template_name='autoreports/autoreports_wizard.html',
+                          extra_context=None,
+                          model=Report,
+                          form_top_class=ReportNameForm,
+                          model_to_export=None,
+                          content_type=None):
+        model_to_export = model_to_export or self.model
+        content_type = content_type or ContentType.objects.get_for_model(model_to_export)
+        data = None
+        adaptors = []
+        form_top_initial = {}
+        if request.method == 'POST':
+            data = request.POST
+        elif report:
+            adaptors = get_adaptors_from_report(report)
+            form_top_initial['prefixes'] = ", ".join([unicode(adaptor.get_form().prefix) for adaptor in adaptors])
+        form_top = form_top_class(instance=report, data=data, initial=form_top_initial)
+        options = {}
+        if form_top.is_valid():
+            for prefix in form_top.cleaned_data.get('prefixes', []):
+                model_field_form = ModelFieldForm(data=data,
+                                                  prefix=prefix)
+                if model_field_form.is_valid():
+                    field_name = model_field_form.cleaned_data.get('field_name')
+                    adaptor = model_field_form.get_adaptor()
+                    wizardfield = WizardField(data=data,
+                                              autoreport_field=adaptor,
+                                              prefix=prefix)
+                    if wizardfield.is_valid():
+                        options[field_name] = wizardfield.cleaned_data
+            name = form_top.cleaned_data.get('name', None) or 'report of %s' % unicode(model_to_export._meta.verbose_name)
+            report_created = self._create_report(model, content_type, name, options, form_top.instance)
+            redirect = report_created.get_redirect_wizard(report)
+            return HttpResponseRedirect(redirect)
+        fields, funcs = get_fields_from_model(content_type.model_class())
+        context = {'add': report is None,
+                   'report': report,
+                   'fields': fields,
+                   'funcs': funcs,
+                   'ADMIN_MEDIA_PREFIX': settings.ADMIN_MEDIA_PREFIX,
+                   'template_base': getattr(settings, 'AUTOREPORTS_BASE_TEMPLATE', 'base.html'),
+                   'form_top': form_top,
+                   'module_name': content_type.model,
+                   'app_label': content_type.app_label,
+                   'adaptors': adaptors,
+                  }
+        extra_context = extra_context or {}
+        context.update(extra_context)
+        return render_to_response(template_name,
+                                  context,
+                                  context_instance=RequestContext(request))
+
+    def _create_report(self, model, content_type, name, options, report=None):
+        report.content_type = content_type
+        report.name = name
+        report.options = options
+        report.save()
+        return report
 
     def get_report_filter_fields(self):
         report_filter_fields = self.report_filter_fields or getattr(self, 'list_display', tuple())

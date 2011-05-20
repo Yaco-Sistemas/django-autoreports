@@ -7,6 +7,7 @@
 
 {% block extrahead %}
     {{ block.super }}
+    <link href="{{ MEDIA_URL }}autoreports/wizard.css" type="text/css" rel="stylesheet">
     {% include "autoreports/inc.medialibraries.html" %}
     <script type="text/javascript">
         {% if report %}

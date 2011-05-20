@@ -56,6 +56,12 @@ def reports_api(request, registry_key):
     return api.report(request)
 
 
+def reports_api_wizard(request, registry_key):
+    from autoreports.registry import report_registry
+    api = report_registry.get_api_class(registry_key)
+    return api.report_api_wizard(request)
+
+
 def reports_ajax_fields(request):
     module_name = request.GET.get('module_name')
     app_label = request.GET.get('app_label')

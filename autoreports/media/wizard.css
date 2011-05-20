@@ -1,0 +1,136 @@
+div.leftsidebar {
+    float: left;
+    width: 20%;
+}
+
+div.leftsidebar div.model {
+    padding-left: 0.7em;
+    border: 1px dashed #5B80B2;
+}
+
+div.leftsidebar ul.fields,
+div.leftsidebar ul.functions {
+    padding-left: 0.4em;
+}
+
+div.rightsidebar,
+div.rightsidebar#content-main {
+    float: left;
+    width: 79%;
+    padding-left: 1%;
+}
+
+div.leftsidebar ul li{
+    clear: left;
+}
+
+div.leftsidebar ul li a{
+    display: block;
+    float: left;
+    z-index: 3;
+    overflow: visible;
+}
+
+div.leftsidebar ul li a.ui-draggable{
+    cursor: move;
+}
+
+div.leftsidebar ul li a.ui-draggable-disabled{
+    cursor: default;
+}
+
+div.leftsidebar ul li a.collapsible {
+    font-weight: bold;
+}
+
+div.leftsidebar ul li.collapsible span.collapsible {
+    cursor: pointer;
+    float: left;
+    display: block;
+    clear: left;
+}
+
+div.model{
+    clear: left;
+}
+
+div.model ul{
+    margin-bottom: 2em;
+}
+
+div.leftsidebar ul li a.using {
+    color: #ccc;
+    padding-right: 15px;
+    background: url(using.png) center right no-repeat;
+}
+
+form.report .collapsable h2:hover {
+    cursor: pointer;
+}
+
+form.report div.prefixes {
+    display: none;
+}
+
+.adaptor{
+    margin-bottom: 3em;
+}
+
+.adaptor .funcAlert{
+    padding: 10px 10px 10px 60px;
+    border: 1px solid #ccc;
+    background: url(warning.png) 10px 10px no-repeat;
+}
+
+.adaptor h2.removeAdaptor {
+    background: url("../img/admin/default-bg.gif") repeat-x scroll left top #7CA0C7;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    margin: 0;
+    padding: 2px 5px 3px;
+    text-align: left;
+}
+.adaptor h2.removeAdaptor:hover {
+    cursor: pointer;
+}
+.adaptor h2.mec{
+    color: red !important;
+}
+
+.adaptor .collapsable {
+    margin-top: 5px;
+    margin-bottom: 0px;
+}
+
+/* ==================== */
+/* = wizard droppable = */
+/* ==================== */
+
+div.droppable{
+    display: none;
+    position: absolute;
+    text-align: center;
+    opacity: 0.8;
+    min-height: 300px;
+    background: #efefef;
+    text-align: center;
+}
+
+div.droppable.dropping{
+    display: block;
+}
+
+div.droppable.void{
+    z-index: -1;
+}
+
+div.droppable.dropping h2{
+    position: relative;
+    top: 1px;
+    margin: 0 auto;
+}
+
+div.droppable.dropping_hover h2{
+    color: #294e80;
+}
