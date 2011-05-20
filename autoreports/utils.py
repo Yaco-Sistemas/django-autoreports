@@ -137,6 +137,7 @@ def get_adaptors_from_report(report):
 
 def get_adaptor(field):
     from autoreports.fields import BaseReportField
+    adaptor = None
     if isinstance(field, models.CharField) or isinstance(field, models.TextField):
         if getattr(field, 'choices', None):
             adaptor = 'choices'
