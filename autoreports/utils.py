@@ -22,9 +22,11 @@ from django.db import models
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.http import QueryDict
+from django.utils.importlib import import_module
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import get_language
 
+from autoreports.adaptors import ADAPTOR_AUTOREPORTS as DEFAULT_ADAPTOR_AUTOREPORTS
 from autoreports import csv_to_excel
 
 try:
@@ -134,41 +136,41 @@ def get_adaptors_from_report(report):
 
 
 def get_adaptor(field):
-    from autoreports.fields import (BaseReportField, TextFieldReportField,
-                                    ChoicesFieldReportField, FuncField,
-                                    DateFieldReportField, DateTimeFieldReportField,
-                                    BooleanFieldReportField, RelatedReverseField,
-                                    ForeingKeyReportField, M2MReportField,
-                                    NumberFieldReportField, AutoNumberFieldReportField,
-                                    GenericFKField, PropertyField)
+    from autoreports.fields import BaseReportField
     if isinstance(field, models.CharField) or isinstance(field, models.TextField):
         if getattr(field, 'choices', None):
-            return ChoicesFieldReportField
+            adaptor = 'choices'
         else:
-            return TextFieldReportField
+            adaptor = 'text'
     elif isinstance(field, models.AutoField):
-        return AutoNumberFieldReportField
+        adaptor = 'autonumber'
     elif isinstance(field, models.IntegerField) or isinstance(field, models.FloatField):
-        return NumberFieldReportField
+        adaptor = 'number'
     elif isinstance(field, models.BooleanField):
-        return BooleanFieldReportField
+        adaptor = 'boolean'
     elif isinstance(field, models.DateTimeField):
-        return DateTimeFieldReportField
+        adaptor = 'datetime'
     elif isinstance(field, models.DateField):
-        return DateFieldReportField
+        adaptor = 'date'
     elif isinstance(field, models.ForeignKey):
-        return ForeingKeyReportField
+        adaptor = 'fk'
     elif isinstance(field, models.ManyToManyField):
-        return M2MReportField
+        adaptor = 'm2m'
     elif isinstance(field, RelatedObject):
-        return RelatedReverseField
+        adaptor = 'relatedreverse'
     elif callable(field):
-        return FuncField
+        adaptor = 'func'
     elif isinstance(field, property):
-        return PropertyField
+        adaptor = 'property'
     elif isinstance(field, GenericForeignKey):
-        return GenericFKField
-    return BaseReportField
+        adaptor = 'gfk'
+    path_adaptor = adaptor and ((getattr(settings, 'ADAPTOR_AUTOREPORTS', None) and
+                                 settings.ADAPTOR_AUTOREPORTS.get(adaptor, None)) or
+                                 (DEFAULT_ADAPTOR_AUTOREPORTS.get(adaptor, None)))
+    if not path_adaptor:
+        return BaseReportField
+    path_module, class_adaptor = ('.'.join(path_adaptor.split('.')[:-1]), path_adaptor.split('.')[-1])
+    return getattr(import_module(path_module), class_adaptor)
 
 
 def get_model_of_relation(field):

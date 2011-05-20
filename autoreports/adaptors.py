@@ -1,0 +1,15 @@
+ADAPTOR_AUTOREPORTS = {
+                       'text': 'autoreports.fields.TextFieldReportField',
+                       'choices': 'autoreports.fields.ChoicesFieldReportField',
+                       'boolean': 'autoreports.fields.BooleanFieldReportField',
+                       'number': 'autoreports.fields.NumberFieldReportField',
+                       'autonumber': 'autoreports.fields.AutoNumberFieldReportField',
+                       'date': 'autoreports.fields.DateFieldReportField',
+                       'datetime': 'autoreports.fields.DateTimeFieldReportField',
+                       'fk': 'autoreports.fields.ForeingKeyReportField',
+                       'gfk': 'autoreports.fields.GenericFKField',
+                       'm2m': 'autoreports.fields.M2MReportField',
+                       'relatedreverse': 'autoreports.fields.RelatedReverseField',
+                       'func': 'autoreports.fields.FuncField',
+                       'property': 'autoreports.fields.PropertyField',
+                       }
