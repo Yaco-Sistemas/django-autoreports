@@ -18,7 +18,7 @@
             </th>
         </tr>
         {% for report_key, report_api in values.list.items %}
-            <tr class="{% cycle 'filaPar' 'filaImpar' %}">
+            <tr class="{% cycle 'odd' 'even' %}">
                 <td>
                     <a href="{% url reports_api report_key %}">{{ report_api.verbose_name }}</a>
                 </td>

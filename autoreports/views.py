@@ -22,12 +22,14 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import Q
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.template.loader import render_to_string
+from django.utils import simplejson
 from django.utils.translation import ugettext as _
 from django.utils.translation import get_language
 
+from autoreports.models import Report
 from autoreports.utils import (EXCLUDE_FIELDS,
                                SEPARATED_FIELD,
                                get_available_formats,
@@ -50,16 +52,36 @@ def reports_list(request, category_key=None):
                               context_instance=RequestContext(request))
 
 
-def reports_api(request, registry_key):
+def reports_api(request, registry_key, report_id=None):
     from autoreports.registry import report_registry
     api = report_registry.get_api_class(registry_key)
-    return api.report(request)
+    report = None
+    if report_id:
+        report = get_object_or_404(Report, pk=report_id)
+    return api.report(request, report=report, extra_context={'registry_key': registry_key})
 
 
-def reports_api_wizard(request, registry_key):
+def reports_api_list(request, registry_key):
     from autoreports.registry import report_registry
     api = report_registry.get_api_class(registry_key)
-    return api.report_api_wizard(request)
+    ct = ContentType.objects.get_for_model(api.model)
+    reports = Report.objects.filter(content_type=ct)
+    return render_to_response('autoreports/autoreports_report_list.html',
+                              {'reports': reports,
+                               'report_key': registry_key,
+                               'template_base': getattr(settings, 'AUTOREPORTS_BASE_TEMPLATE', 'base.html'),
+                              },
+                              context_instance=RequestContext(request))
+
+
+def reports_api_wizard(request, registry_key, report_id=None):
+    from autoreports.registry import report_registry
+    api = report_registry.get_api_class(registry_key)
+    report = None
+    if report_id:
+        report = get_object_or_404(Report, pk=report_id)
+    return api.report_api_wizard(request, report=report,
+                                 extra_context={'registry_key': registry_key})
 
 
 def reports_ajax_fields(request):
@@ -101,7 +123,7 @@ def _get_ignore_models(ignore_app_label, ignore_module_name):
 def reports_ajax_fields_options(request):
     module_name = request.GET.get('module_name')
     app_label = request.GET.get('app_label')
-    is_admin = request.GET.get('is_admin')
+    is_admin = simplejson.loads(request.GET.get('is_admin', True),)
     ct = ContentType.objects.get(model=module_name,
                                  app_label=app_label)
     model = ct.model_class()

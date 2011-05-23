@@ -196,6 +196,7 @@ class ReportApi(object):
                    'module_name': content_type.model,
                    'app_label': content_type.app_label,
                    'adaptors': adaptors,
+                   'is_admin': False,
                   }
         extra_context = extra_context or {}
         context.update(extra_context)

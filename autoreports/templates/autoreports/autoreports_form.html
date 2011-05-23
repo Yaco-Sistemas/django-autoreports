@@ -21,6 +21,20 @@
 {% endblock %}
 
 {% block content %}
+    <ul class="object-tools">
+        {% if report %}
+            <li>
+                <a href="../wizard/{{ report.id }}/">
+                {% trans "Edit" %} {{ report }}
+                </a>
+            </li>
+        {% endif %}
+        <li>
+            <a href="{% url reports_api_list registry_key %}">
+            {% trans "Report list" %}
+            </a>
+        </li>
+    </ul>
     <h1>{% trans "Report Form" %}</h1>
     {% if django_query %}
         <pre>{{ django_query }}</pre>

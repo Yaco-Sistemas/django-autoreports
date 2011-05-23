@@ -1,4 +1,4 @@
-ADAPTOR_AUTOREPORTS = {
+AUTOREPORTS_ADAPTOR = {
                        'text': 'autoreports.fields.TextFieldReportField',
                        'choices': 'autoreports.fields.ChoicesFieldReportField',
                        'boolean': 'autoreports.fields.BooleanFieldReportField',

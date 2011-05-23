@@ -1,5 +1,5 @@
 {% extends template_base %}
-{% load i18n %}
+{% load i18n autoreports_tags %}
 
 {% block title %}
     {% trans "Wizard Report" %} {{ block.super }}
@@ -57,11 +57,11 @@
                 $(".collapsable h2").live("click", function() {
                     var fieldset = $(this).parent();
                     if($(this).hasClass("hidden")) {
-                        fieldset.find("div").fadeIn();
+                        fieldset.children().not("h2").fadeIn();
                         fieldset.parent(".adaptor").find(".adaptorHelp").fadeIn();
                         $(this).removeClass("hidden");
                     } else {
-                        fieldset.find("div").fadeOut();
+                        fieldset.children().not("h2").fadeOut();
                         fieldset.parent(".adaptor").find(".adaptorHelp").fadeOut();
                         $(this).addClass("hidden");
                     }
@@ -215,7 +215,7 @@
                     <div class="wizard">
                         <h2>{% trans "Selected fields" %}</h2>
                         {% for adaptor in adaptors %}
-                            {{ adaptor.render_instance|safe }}
+                            {% autoreports_render_instance adaptor is_admin %}
                         {% endfor %}
                     </div>
                 {% endblock %}

@@ -1,0 +1,27 @@
+{% extends template_base %}
+
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../">{% trans "Home" %}</a> &rsaquo;
+     <a href=".">{% trans "Reports" %}</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<table class="autoreports_list">
+    <tr>
+        <th>
+            {% trans "Report" %}
+        </th>
+    </tr>
+    {% for report in reports %}
+        <tr class="{% cycle 'odd' 'even' %}">
+            <td>
+                <a href="{% url reports_api report_key report.pk %}">{{ report }}</a>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

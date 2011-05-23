@@ -22,6 +22,9 @@ urlpatterns = patterns('autoreports.views',
 
     url(r'^(category/(?P<category_key>[\w-]+)/)?$', 'reports_list', name='reports_list'),
     url(r'^(?P<registry_key>[\w-]+)/$', 'reports_api', name='reports_api'),
+    url(r'^(?P<registry_key>[\w-]+)/(?P<report_id>\d+)/$', 'reports_api', name='reports_api'),
+    url(r'^(?P<registry_key>[\w-]+)/reports/$', 'reports_api_list', name='reports_api_list'),
     url(r'^(?P<registry_key>[\w-]+)/wizard/$', 'reports_api_wizard', name='reports_api_wizard'),
+    url(r'^(?P<registry_key>[\w-]+)/wizard/(?P<report_id>\d+)/$', 'reports_api_wizard', name='reports_api_wizard'),
     url(r'^(?P<app_name>[\w-]+)/(?P<model_name>[\w-]+)/$', 'reports_view', name='reports_view'),
     )

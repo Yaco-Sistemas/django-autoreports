@@ -1,3 +1,8 @@
+.hiddenElement {
+    display: none;
+}
+
+
 div.leftsidebar {
     float: left;
     width: 20%;

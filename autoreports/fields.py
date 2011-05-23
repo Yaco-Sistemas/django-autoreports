@@ -13,7 +13,8 @@ from django.utils.translation import ugettext as _
 from autoreports.forms import BaseReportForm
 from autoreports.model_forms import modelform_factory
 from autoreports.utils import (is_iterable, get_fields_from_model, get_field_from_model,
-                               parsed_field_name, transmeta_field_name, SEPARATED_FIELD)
+                               parsed_field_name, transmeta_field_name, SEPARATED_FIELD,
+                               get_class_from_path)
 from autoreports.wizards import ModelFieldForm, WizardField, WizardAdminField
 
 
@@ -141,8 +142,15 @@ class BaseReportField(object):
 
     def get_class_form(self, is_admin=True):
         if is_admin:
-            return WizardAdminField
-        return WizardField
+            wizard_admin_path = getattr(settings, 'AUTOREPORTS_WIZARDADMINFIELD', None)
+            if not wizard_admin_path:
+                return WizardAdminField
+            else:
+                return get_class_from_path(wizard_admin_path)
+        wizard_path = getattr(settings, 'AUTOREPORTS_WIZARDFIELD', None)
+        if not wizard_path:
+            return WizardField
+        return get_class_from_path(wizard_path)
 
     def get_form(self, is_admin=True):
         wizard_class = self.get_class_form(is_admin)
@@ -164,6 +172,9 @@ class BaseReportField(object):
     def render_wizard(self, is_admin=True):
         return unicode(self.get_form(is_admin))
 
+    def render_api(self, modelfieldform, wizard):
+        return self.render_admin(modelfieldform, wizard)
+
     def render_admin(self, modelfieldform, wizard):
         return "<div class='adaptor'>%s %s <h2 class='removeAdaptor'>%s</h2></div>" % (modelfieldform,
                                                                                        wizard,
@@ -174,7 +185,7 @@ class BaseReportField(object):
         wizard = self.render_wizard(is_admin)
         if is_admin:
             return self.render_admin(modelfieldform, wizard)
-        return "%s %s" % (modelfieldform, wizard)
+        return self.render_api(modelfieldform, wizard)
 
     def render_instance(self, is_admin=True):
         wizard = self.get_form(is_admin)

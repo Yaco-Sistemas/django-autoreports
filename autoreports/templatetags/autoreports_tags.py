@@ -88,3 +88,9 @@ def is_son_of_report_admin(parser, token):
     if not m:
         raise template.TemplateSyntaxError, "%r tag needs an 'as variable_name' parameters" % tag_name
     return IsSonOfReportAdminNode(m.group(1))
+
+
+def autoreports_render_instance(context, adaptor, is_admin=True):
+    adaptor_render = adaptor.render_instance(is_admin)
+    return {'adaptor_render': adaptor_render}
+autoreports_admin = register.inclusion_tag('autoreports/autoreports_render_instance.html', takes_context=True)(autoreports_render_instance)

@@ -26,7 +26,7 @@ from django.utils.importlib import import_module
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import get_language
 
-from autoreports.adaptors import ADAPTOR_AUTOREPORTS as DEFAULT_ADAPTOR_AUTOREPORTS
+from autoreports.adaptors import AUTOREPORTS_ADAPTOR as DEFAULT_AUTOREPORTS_ADAPTOR
 from autoreports import csv_to_excel
 
 try:
@@ -165,12 +165,18 @@ def get_adaptor(field):
         adaptor = 'property'
     elif isinstance(field, GenericForeignKey):
         adaptor = 'gfk'
-    path_adaptor = adaptor and ((getattr(settings, 'ADAPTOR_AUTOREPORTS', None) and
-                                 settings.ADAPTOR_AUTOREPORTS.get(adaptor, None)) or
-                                 (DEFAULT_ADAPTOR_AUTOREPORTS.get(adaptor, None)))
-    if not path_adaptor:
+    class_adaptor = adaptor and (get_class_from_path((getattr(settings, 'AUTOREPORTS_ADAPTOR', None) and
+                                                     settings.AUTOREPORTS_ADAPTOR.get(adaptor, None)) or
+                                                     (DEFAULT_AUTOREPORTS_ADAPTOR.get(adaptor, None))))
+    if not class_adaptor:
         return BaseReportField
-    path_module, class_adaptor = ('.'.join(path_adaptor.split('.')[:-1]), path_adaptor.split('.')[-1])
+    return class_adaptor
+
+
+def get_class_from_path(path):
+    if not path:
+        return None
+    path_module, class_adaptor = ('.'.join(path.split('.')[:-1]), path.split('.')[-1])
     return getattr(import_module(path_module), class_adaptor)
 
 

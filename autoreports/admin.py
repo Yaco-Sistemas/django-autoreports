@@ -147,7 +147,8 @@ class ReportAdmin(ReportApi):
     def _get_context_wizard(self, extra_context=None):
         extra_context = extra_context or {}
         context = {'opts': self.opts,
-                   'template_base': "admin/base_site.html"}
+                   'template_base': "admin/base_site.html",
+                   'is_admin': True}
         context.update(extra_context)
         return context
 
@@ -171,9 +172,6 @@ class ReportAdmin(ReportApi):
                           form_top_class=ReportNameAdminForm,
                           content_type=None):
         report = model.objects.get(pk=report_id)
-        extra_context = extra_context or {}
-        context = {'opts': self.opts}
-        context.update(extra_context)
         return self.report_api_wizard(request,
                                       report=report,
                                       template_name=template_name,

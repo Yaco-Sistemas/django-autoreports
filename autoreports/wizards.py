@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.template.loader import render_to_string
 from django.utils.translation import get_language
 from django.utils.translation import ugettext
 from django.utils.translation import ugettext_lazy as _
@@ -123,13 +124,25 @@ class WizardField(forms.Form):
                 self.fields['label'].initial = field_options.get('label', '')
                 self.fields['help_text'].initial = field_options.get('help_text', '')
 
+    def __unicode__(self):
+        return self.as_wizard_field()
+
+    def as_render_default(self):
+        return self.as_p()
+
+    def as_wizard_field(self):
+        verbose_name = self.autoreport_field.get_verbose_name()
+        return render_to_string('autoreports/as_wizard_field.html',
+                                {'verbose_name': verbose_name,
+                                 'form': self})
+
 
 class WizardAdminField(WizardField, FormAdminDjango):
 
     def __init__(self, autoreport_field, instance=None, *args, **kwargs):
         super(WizardAdminField, self).__init__(autoreport_field, instance, *args, **kwargs)
         self.fieldsets = ((self.autoreport_field.get_verbose_name(), {'fields': self.fields,
-                                                                    'classes': ('collapsable', )},),)
+                                                                      'classes': ('collapsable', )},),)
 
     def __unicode__(self):
         return self.as_django_admin()
