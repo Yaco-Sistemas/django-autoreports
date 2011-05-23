@@ -21,6 +21,7 @@
 {% endblock %}
 
 {% block content %}
+    {% if reports_api_list %}
     <ul class="object-tools">
         {% if report %}
             <li>
@@ -35,6 +36,7 @@
             </a>
         </li>
     </ul>
+    {% endif %}
     <h1>{% trans "Report Form" %}</h1>
     {% if django_query %}
         <pre>{{ django_query }}</pre>
