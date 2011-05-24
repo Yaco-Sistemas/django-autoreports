@@ -187,6 +187,21 @@
 
 
 {% block content %}
+    {% if registry_key %}
+    <ul class="object-tools">
+        <li>
+            <a href="{% url reports_api_wizard registry_key %}">
+            {% trans "Create a report form" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url reports_api_list registry_key %}">
+            {% trans "Report list" %}
+            </a>
+        </li>
+    </ul>
+    {% endif %}
+
     {% block contenttitle %}
         <h1>{% trans "Wizard Form" %}</h1>
     {% endblock %}

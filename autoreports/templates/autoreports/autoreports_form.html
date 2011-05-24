@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-    {% if reports_api_list %}
+    {% if registry_key %}
     <ul class="object-tools">
         {% if report %}
             <li>
@@ -30,6 +30,11 @@
                 </a>
             </li>
         {% endif %}
+        <li>
+            <a href="{% url reports_api_wizard registry_key %}">
+            {% trans "Create a report form" %}
+            </a>
+        </li>
         <li>
             <a href="{% url reports_api_list registry_key %}">
             {% trans "Report list" %}
