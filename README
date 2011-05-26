@@ -147,7 +147,7 @@ To access /autoreports/.
     category_verbosename = 'Contrato'
 
 
-report_registry.register_api(Model, ModelApi)
+ report_registry.register_api(Model, ModelApi)
 
 Configuration
 =============
