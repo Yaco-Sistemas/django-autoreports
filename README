@@ -54,9 +54,11 @@ Link the media files in your project media directory
 
 
 In the admin site (from Advanced usage)
--------------------------------------
+----------------------------------------
 
-Redefine 'admin/change_list.html' templates as follows::
+Redefine 'admin/change_list.html' templates as follows
+
+::
 
   {% load adminmedia admin_list i18n autoreports_tags %} {# add auto_reports_tags #}
 
@@ -104,13 +106,13 @@ Advanced usage
 
 You have for each change list 4 new actions:
 
- Quick report 
- ------------
- Report to csv the same that you see in the changelist. Works the filters and the searcher
+Quick report 
+------------
+Report to csv the same that you see in the changelist. Works the filters and the searcher
  
- Advanced report
- ---------------
- You have a form to filter. You can customizer this form.
+Advanced report
+--------------
+You have a form to filter. You can customizer this form.
 
 ::
 
@@ -120,12 +122,12 @@ class FooModelAdmin(ReportAdmin, admin.ModelAdmin):
  
  If you don't define this attributes, report_filter_fields and report_display_fields have the value of list_display
 
- Wizard report
- -------------
+Wizard report
+-------------
  You can create a new "Advanced reports", with this wizard
 
- Reports
- -------------
+Reports
+-------------
  A list of "Advanced reports" thet you created with the wizard
 
 
