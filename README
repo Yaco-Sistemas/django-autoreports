@@ -121,7 +121,7 @@ You have a form to filter. You can customizer this form.
     report_filter_fields = ('description', 'category', ...)
     report_display_fields = ('name', 'description',  ...)
  
- If you don't define this attributes, report_filter_fields and report_display_fields have the value of list_display
+If you don't define this attributes, report_filter_fields and report_display_fields have the value of list_display
 
 Wizard report
 -------------
