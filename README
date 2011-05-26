@@ -97,6 +97,7 @@ Basic usage
 You have to api, and you can export to CSV each models.
 
 ::
+
  /autoreports/app_label/module_name/
  /autoreports/app_label/module_name/?filter1=value1
 
@@ -139,7 +140,7 @@ To access /autoreports/.
  from autoreports.registry import report_registry
  from autoreports.api import ReportApi
 
-#...#
+ #...#
 
  class ModelApi(ReportApi):
     category = 'contrato'
