@@ -116,7 +116,7 @@ You have a form to filter. You can customizer this form.
 
 ::
 
-class FooModelAdmin(ReportAdmin, admin.ModelAdmin):
+ class FooModelAdmin(ReportAdmin, admin.ModelAdmin):
     report_filter_fields = ('description', 'category', ...)
     report_display_fields = ('name', 'description',  ...)
  
@@ -136,12 +136,12 @@ To access /autoreports/.
 
 ::
 
-from autoreports.registry import report_registry
-from autoreports.api import ReportApi
+ from autoreports.registry import report_registry
+ from autoreports.api import ReportApi
 
 #...#
 
-class ModelApi(ReportApi):
+ class ModelApi(ReportApi):
     category = 'contrato'
     category_verbosename = 'Contrato'
 
