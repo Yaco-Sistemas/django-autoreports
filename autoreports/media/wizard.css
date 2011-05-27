@@ -122,7 +122,7 @@ div.droppable{
     text-align: center;
 }
 
-div.droppable.dropping{
+div.droppable.dropping {
     display: block;
 }
 
@@ -134,6 +134,10 @@ div.droppable.dropping h2{
     position: relative;
     top: 1px;
     margin: 0 auto;
+}
+
+div.droppable.dropping_hover {
+    z-index: 10;
 }
 
 div.droppable.dropping_hover h2{

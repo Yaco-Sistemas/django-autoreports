@@ -18,16 +18,15 @@
             });
           })(jQuery);
     </script>
-
-    <div class="funcAlert adaptorHelp">
-        <strong>{% trans "Warning!" %}</strong>
-        <p>
-            {% trans "You should know this. Functions can modify or even delete elements in the database. If you are not sure of what you are doing, you should not use this feature" %}
-        </p>
-        {% if code %}
-            <a href="#" class="show">{% trans "See function source code"%}</a>
-            <a href="#" class="hide hiddenElement">{% trans "Hide function source code"%}</a>
-            {{ code|safe }}
-        {% endif %}
-    </div>
 {% endif %}
+<div class="funcAlert adaptorHelp">
+    <strong>{% trans "Warning!" %}</strong>
+    <p>
+        {% trans "You should know this. Functions can modify or even delete elements in the database. If you are not sure of what you are doing, you should not use this feature" %}
+    </p>
+    {% if code %}
+        <a href="#" class="show">{% trans "See function source code"%}</a>
+        <a href="#" class="hide hiddenElement">{% trans "Hide function source code"%}</a>
+        {{ code|safe }}
+    {% endif %}
+</div>
