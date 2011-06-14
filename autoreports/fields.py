@@ -134,7 +134,7 @@ class BaseReportField(object):
                 field_name_subfix = "%s__%s" % (self.field_name_parsed, fil)
                 if autoreports_subfix:
                     field_label = u"%s (%s)" % (field.label, dict(self.get_filters())[fil])
-                field.label = field_label
+                    field.label = field_label
                 fields_form_filter[field_name_subfix] = self.change_widget(field)
             else:
                 fields_form_display[self.field_name] = field
