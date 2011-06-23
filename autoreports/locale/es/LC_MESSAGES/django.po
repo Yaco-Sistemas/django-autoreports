@@ -1,0 +1,353 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-06-23 13:06+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: adminfilters.py:204
+#, python-format
+msgid "availability of %s"
+msgstr "disponibilidad de %s"
+
+#: adminfilters.py:207
+msgid "Indistinct"
+msgstr "Indistinto"
+
+#: adminfilters.py:207 fields.py:483
+msgid "Yes"
+msgstr "Si"
+
+#: adminfilters.py:207 fields.py:482
+msgid "No"
+msgstr "No"
+
+#: adminfilters.py:237
+msgid "All"
+msgstr "Todo"
+
+#: fields.py:44 fields.py:246 fields.py:387
+msgid "Exact (case-sensitive)"
+msgstr "Exacto (diferencia mayusculas y minusculas)"
+
+#: fields.py:45 fields.py:247
+msgid "Exact (case-insensitive)"
+msgstr "Exacto (no diferencia mayusculas y minusculas)"
+
+#: fields.py:46 fields.py:248
+msgid "Contains (case-sensitive)"
+msgstr "Contiene (diferencia mayusculas y minusculas)"
+
+#: fields.py:47 fields.py:249
+msgid "Contains (case-insensitive)"
+msgstr "Contiene (no diferencia mayusculas y minusculas)"
+
+#: fields.py:48 fields.py:250
+msgid "Starts with (case-sensitive)"
+msgstr "Empieza en (diferencia mayusculas y minusculas)"
+
+#: fields.py:49 fields.py:251
+msgid "Starts with (case-insensitive)"
+msgstr "Empieza con (no diferencia mayusculas y minusculas)"
+
+#: fields.py:50 fields.py:252
+msgid "Ends with (case-sensitive)"
+msgstr "Termina en (diferencia mayusculas y minusculas)"
+
+#: fields.py:51 fields.py:253
+msgid "Ends with (case-insensitive)"
+msgstr "Termina en (no diferencia mayusculas y minusculas)"
+
+#: fields.py:52 fields.py:388 fields.py:448
+msgid "Less than"
+msgstr "Menor que"
+
+#: fields.py:53 fields.py:389 fields.py:449
+msgid "Less than or equal"
+msgstr "Menor o igual que"
+
+#: fields.py:54 fields.py:390 fields.py:450
+msgid "Greater than"
+msgstr "Mayor que"
+
+#: fields.py:55 fields.py:391 fields.py:451
+msgid "Greater than or equal"
+msgstr "Mayor o igual que"
+
+#: fields.py:56
+msgid "In (coma separated list)"
+msgstr "En (lista separada por coma)"
+
+#: fields.py:181 fields.py:645
+msgid "Remove"
+msgstr "Eliminar"
+
+#: fields.py:206
+msgid "Text Area"
+msgstr "Area de Texto"
+
+#: fields.py:237
+msgid "Other fields to filter"
+msgstr "Otros campos para filtrar"
+
+#: fields.py:242
+msgid ""
+"Choose other fields, when you filter with this field, you will search in "
+"these also"
+msgstr "Elige otros campos, cuando tu filtres con este campo, tu buscaras en"
+"estos otros también"
+
+#: fields.py:268
+msgid "Select"
+msgstr "Selector"
+
+#: fields.py:269
+msgid "Radio buttons"
+msgstr "Radio buttons"
+
+#: fields.py:274 fields.py:366 fields.py:447 fields.py:503 fields.py:561
+msgid "Exact"
+msgstr "Exacto"
+
+#: fields.py:310
+msgid "Select Multiple"
+msgstr "Selector Multiple"
+
+#: fields.py:311
+msgid "CheckBox Multiple"
+msgstr "CheckBox Multiple"
+
+#: fields.py:316 fields.py:531
+msgid "In"
+msgstr "En"
+
+#: fields.py:460
+msgid "Date Widget"
+msgstr "Widget de Fecha"
+
+#: forms.py:48
+msgid "Report display fields"
+msgstr "Campos a mostrar en el informe"
+
+#: models.py:25
+msgid "Name"
+msgstr "Nombre"
+
+#: models.py:26
+msgid "Content type"
+msgstr "Tipo de Contenido"
+
+#: models.py:52
+msgid "base report"
+msgstr ""
+
+#: models.py:53
+msgid "base reports"
+msgstr ""
+
+#: models.py:69
+msgid "report"
+msgstr "informe"
+
+#: models.py:70
+msgid "reports"
+msgstr "informes"
+
+#: registry.py:64 registry.py:76
+msgid "No category"
+msgstr "Sin categoría"
+
+#: utils.py:42
+msgid "Report to CSV"
+msgstr "Informe en CSV"
+
+#: utils.py:46
+msgid "Report to Excel"
+msgstr "Informe en Excel"
+
+#: views.py:160
+msgid "Object"
+msgstr "Objeto"
+
+#: wizards.py:64
+msgid "Show in the report"
+msgstr "Mostrar en el informe"
+
+#: wizards.py:76 wizards.py:83
+msgid "label"
+msgstr "campo"
+
+#: wizards.py:79 wizards.py:86
+msgid "Help Text"
+msgstr "Texto de Ayuda"
+
+#: wizards.py:91
+msgid "Filters"
+msgstr "Filtros"
+
+#: wizards.py:98
+msgid "Other widget"
+msgstr "Otro widget"
+
+#: wizards.py:101
+msgid ""
+"Chose other widget. If you change the widget it's possible that the filter "
+"change also"
+msgstr "Elige otro widget. Si tu cambias el widget es posible que el filtro tambien cambie"
+
+#: templates/autoreports/autoreports_form.html:5
+#: templates/autoreports/admin/autoreports_tools.html:12
+msgid "Advanced Report"
+msgstr "Informe Avanzado"
+
+#: templates/autoreports/autoreports_form.html:17
+#: templates/autoreports/autoreports_list.html:7
+#: templates/autoreports/autoreports_report_list.html:7
+#: templates/autoreports/autoreports_wizard.html:178
+#: templates/autoreports/admin/autoreports_form.html:23
+#: templates/autoreports/admin/autoreports_wizard.html:20
+#: templates/autoreports/admin/report_list.html:7
+msgid "Home"
+msgstr "Inicio"
+
+#: templates/autoreports/autoreports_form.html:18
+#: templates/autoreports/autoreports_list.html:8
+#: templates/autoreports/autoreports_report_list.html:8
+#: templates/autoreports/autoreports_wizard.html:179
+#: templates/autoreports/admin/autoreports_form.html:27
+#: templates/autoreports/admin/autoreports_tools.html:22
+#: templates/autoreports/admin/autoreports_wizard.html:23
+#: templates/autoreports/admin/report_list.html:10
+msgid "Reports"
+msgstr "Informes"
+
+#: templates/autoreports/autoreports_form.html:29
+msgid "Edit"
+msgstr "Editar"
+
+#: templates/autoreports/autoreports_form.html:35
+#: templates/autoreports/autoreports_wizard.html:194
+msgid "Create a report form"
+msgstr "Crear un formulario de informes"
+
+#: templates/autoreports/autoreports_form.html:40
+#: templates/autoreports/autoreports_wizard.html:199
+msgid "Report list"
+msgstr "Listado de informes"
+
+#: templates/autoreports/autoreports_form.html:45
+#: templates/autoreports/admin/autoreports_form.html:30
+msgid "Report Form"
+msgstr "Formulario de informes"
+
+#: templates/autoreports/autoreports_form.html:58
+#: templates/autoreports/autoreports_wizard.html:242
+msgid "Delete report"
+msgstr "Borrar informe"
+
+#: templates/autoreports/autoreports_form.html:63
+msgid "Filter"
+msgstr "Filtro"
+
+#: templates/autoreports/autoreports_list.html:17
+msgid "Report of"
+msgstr "Informe de"
+
+#: templates/autoreports/autoreports_report_list.html:16
+msgid "Report"
+msgstr "Informe"
+
+#: templates/autoreports/autoreports_wizard.html:5
+#: templates/autoreports/autoreports_wizard.html:183
+#: templates/autoreports/admin/autoreports_tools.html:17
+#: templates/autoreports/admin/autoreports_wizard.html:27
+msgid "Wizard Report"
+msgstr "Informe Wizard"
+
+#: templates/autoreports/autoreports_wizard.html:15
+#: templates/autoreports/admin/autoreports_form.html:10
+msgid "Are you sure you want to delete this report?"
+msgstr "¿Estas seguro de que quieres borrar este informe?"
+
+#: templates/autoreports/autoreports_wizard.html:206
+msgid "Wizard Form"
+msgstr "Formulario Wizard"
+
+#: templates/autoreports/autoreports_wizard.html:215
+msgid "See report"
+msgstr "Ver informe"
+
+#: templates/autoreports/autoreports_wizard.html:228
+msgid "Drop the fields here"
+msgstr "Suelta los campos aquí"
+
+#: templates/autoreports/autoreports_wizard.html:231
+msgid "Selected fields"
+msgstr "Seleccionar campos"
+
+#: templates/autoreports/autoreports_wizard.html:243
+msgid "Save report"
+msgstr "Guardar informe"
+
+#: templates/autoreports/autoreports_wizard.html:245
+msgid "Create report"
+msgstr "Crear informe"
+
+#: templates/autoreports/inc.render_model.html:8
+msgid "Fields"
+msgstr "Campos"
+
+#: templates/autoreports/inc.render_model.html:25
+msgid "Functions"
+msgstr "Funciones"
+
+#: templates/autoreports/admin/autoreports_form.html:40
+#, python-format
+msgid "Edit %(report)s"
+msgstr "Editar %(report)s"
+
+#: templates/autoreports/admin/autoreports_form.html:51
+msgid "Results"
+msgstr "Resultados"
+
+#: templates/autoreports/admin/autoreports_tools.html:7
+msgid "Quick Report"
+msgstr "Informe Rápido"
+
+#: templates/autoreports/admin/report_list.html:20
+#, python-format
+msgid "Add %(name)s"
+msgstr "Añadir %(name)s"
+
+#: templates/autoreports/fields/func_field_wizard.html:23
+msgid "Warning!"
+msgstr "Aviso!"
+
+#: templates/autoreports/fields/func_field_wizard.html:25
+msgid ""
+"You should know this. Functions can modify or even delete elements in the "
+"database. If you are not sure of what you are doing, you should not use this "
+"feature"
+msgstr ""
+"Tu deberías saber esto. Las funciones pueden modificar o incluso eliminar "
+"elements en labase de datos. Si tu no estas seguro de lo que estas haciendo, "
+"tu no deberías usar esta funcionalidad"
+
+#: templates/autoreports/fields/func_field_wizard.html:28
+msgid "See function source code"
+msgstr "Ver código de la función"
+
+#: templates/autoreports/fields/func_field_wizard.html:29
+msgid "Hide function source code"
+msgstr "Ocultar código de la función"
