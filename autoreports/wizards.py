@@ -100,6 +100,11 @@ class WizardField(forms.Form):
                                                       required=False,
                                                       help_text=_('Chose other widget. If you change the widget it\'s possible that the filter change also'))
 
+        self.fields['order'] = forms.IntegerField(label=_('order'),
+                                                 initial=0,
+                                                 required=False)
+        self.fields['order'].widget = forms.HiddenInput(attrs={'class': 'wizardOrder'})
+
         for key, field in autoreport_field.extra_wizard_fields().items():
             self.fields[key] = field
 
@@ -110,6 +115,7 @@ class WizardField(forms.Form):
             if not field_options:
                 return
             self.fields['display'].initial = field_options.get('display', False)
+            self.fields['order'].initial = field_options.get('order', 0)
             if filters:
                 self.fields['filters'].initial = field_options.get('filters', tuple())
             if widgets:

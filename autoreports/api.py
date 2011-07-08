@@ -27,7 +27,7 @@ from autoreports.models import Report
 from autoreports.model_forms import modelform_factory
 from autoreports.utils import (get_fields_from_model, get_available_formats,
                                get_field_from_model, get_adaptor, EXCLUDE_FIELDS,
-                               get_adaptors_from_report)
+                               get_adaptors_from_report, get_ordered_fields)
 from autoreports.wizards import ReportNameForm, ModelFieldForm, WizardField
 
 
@@ -73,7 +73,8 @@ class ReportApi(object):
         fields_form_filter = SortedDict({})
         fields_form_display = SortedDict({})
         if report and report.options:
-            for field_name, opts in report.options.items():
+            report_options_order = get_ordered_fields(report)
+            for field_name, opts in report_options_order:
                 fields_form_filter, fields_form_display = self.get_field_of_form(field_name, opts,
                                                                fields_form_filter=fields_form_filter,
                                                                fields_form_display=fields_form_display)

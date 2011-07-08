@@ -124,12 +124,18 @@ def get_available_formats():
     return formats
 
 
+def get_ordered_fields(report):
+    return sorted(report.options.iteritems(),
+                  key=lambda e: len(e) > 0 and e[1].get('order', -1) or -1)
+
+
 def get_adaptors_from_report(report):
     model = report.content_type.model_class()
     adaptors = []
     if not report.options:
         return adaptors
-    for field_name, ops in report.options.items():
+    report_options_order = get_ordered_fields(report)
+    for field_name, ops in report_options_order:
         model_field, field = get_field_from_model(model, field_name)
         adaptors.append(get_adaptor(field)(model, field, field_name, instance=report, treatment_transmeta=False))
     return adaptors

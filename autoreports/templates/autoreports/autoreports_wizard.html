@@ -53,7 +53,18 @@
                         drop: requestFieldSet,
                         hoverClass: 'dropping_hover'
                     });
+                    $(".adaptors").sortable({revert: true,
+                                             stop: function() {
+                                                    $(".wizardOrder").map(function (i, elem) {
+                                                        $(elem).val(i);
+                                                    });
+                                            }});
+                    $(".adaptors").draggable({revert: "invalid",
+                                              connectToSortable:".adaptors",
+                                             });
+
                 }
+
                 $(".collapsable h2").live("click", function() {
                     var fieldset = $(this).parent();
                     if($(this).hasClass("hidden")) {
@@ -67,7 +78,6 @@
                     }
                     return false;
                 });
-
                 $(".removeAdaptor").live("click", function() {
                     $(this).parent().remove();
 
@@ -101,7 +111,7 @@
                             type: "GET",
                             async: true,
                             dataType: 'html',
-                            success: function(response){
+                            success: function(response) {
                                 var wizard = $(".wizard");
                                 var prefix = $(response).find("input").attr("id").replace("id_", "").split("-")[0];
                                 var old_prefixes = $("#id_prefixes").val();
@@ -110,7 +120,12 @@
                                 } else {
                                     $("#id_prefixes").val(old_prefixes + ", "  + prefix);
                                 }
-                                $(response).insertAfter(wizard.find("h2:first"));
+                                var lastOrder = wizard.find(".wizardOrder:last");
+                                var adaptor = $(response);
+                                if (lastOrder.length > 0) {
+                                    adaptor.find(".wizardOrder").val(parseInt(lastOrder.val()) + 1);
+                                }
+                                wizard.find(".adaptors").append(adaptor);
 
                                 // avoid dragging the same element again
                                 var idx = dragged.push(ui);
@@ -229,9 +244,11 @@
                     </div>
                     <div class="wizard">
                         <h2>{% trans "Selected fields" %}</h2>
-                        {% for adaptor in adaptors %}
-                            {% autoreports_render_instance adaptor is_admin %}
-                        {% endfor %}
+                        <div class="adaptors">
+                            {% for adaptor in adaptors %}
+                                {% autoreports_render_instance adaptor is_admin %}
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endblock %}
             {% endblock %}
