@@ -36,7 +36,7 @@ div.leftsidebar ul li a{
     overflow: visible;
 }
 
-div.leftsidebar ul li a.ui-draggable{
+div.leftsidebar ul li a.ui-draggable, div.adaptor {
     cursor: move;
 }
 
@@ -106,6 +106,10 @@ form.report div.prefixes {
 .adaptor .collapsable {
     margin-top: 5px;
     margin-bottom: 0px;
+}
+
+.adaptor .order {
+    display: none;
 }
 
 /* ==================== */
