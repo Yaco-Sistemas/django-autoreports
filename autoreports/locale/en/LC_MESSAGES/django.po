@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-23 13:06+0200\n"
+"POT-Creation-Date: 2011-07-08 09:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,11 +25,11 @@ msgstr ""
 msgid "Indistinct"
 msgstr ""
 
-#: adminfilters.py:207 fields.py:483
+#: adminfilters.py:207 fields.py:488
 msgid "Yes"
 msgstr ""
 
-#: adminfilters.py:207 fields.py:482
+#: adminfilters.py:207 fields.py:487
 msgid "No"
 msgstr ""
 
@@ -69,19 +69,19 @@ msgstr ""
 msgid "Ends with (case-insensitive)"
 msgstr ""
 
-#: fields.py:52 fields.py:388 fields.py:448
+#: fields.py:52 fields.py:388 fields.py:453
 msgid "Less than"
 msgstr ""
 
-#: fields.py:53 fields.py:389 fields.py:449
+#: fields.py:53 fields.py:389 fields.py:454
 msgid "Less than or equal"
 msgstr ""
 
-#: fields.py:54 fields.py:390 fields.py:450
+#: fields.py:54 fields.py:390 fields.py:455
 msgid "Greater than"
 msgstr ""
 
-#: fields.py:55 fields.py:391 fields.py:451
+#: fields.py:55 fields.py:391 fields.py:456
 msgid "Greater than or equal"
 msgstr ""
 
@@ -89,7 +89,7 @@ msgstr ""
 msgid "In (coma separated list)"
 msgstr ""
 
-#: fields.py:181 fields.py:645
+#: fields.py:181 fields.py:650
 msgid "Remove"
 msgstr ""
 
@@ -115,7 +115,7 @@ msgstr ""
 msgid "Radio buttons"
 msgstr ""
 
-#: fields.py:274 fields.py:366 fields.py:447 fields.py:503 fields.py:561
+#: fields.py:274 fields.py:366 fields.py:452 fields.py:508 fields.py:566
 msgid "Exact"
 msgstr ""
 
@@ -127,11 +127,11 @@ msgstr ""
 msgid "CheckBox Multiple"
 msgstr ""
 
-#: fields.py:316 fields.py:531
+#: fields.py:316 fields.py:536
 msgid "In"
 msgstr ""
 
-#: fields.py:460
+#: fields.py:465
 msgid "Date Widget"
 msgstr ""
 
@@ -205,6 +205,10 @@ msgid ""
 "change also"
 msgstr ""
 
+#: wizards.py:103
+msgid "order"
+msgstr ""
+
 #: templates/autoreports/autoreports_form.html:5
 #: templates/autoreports/admin/autoreports_tools.html:12
 msgid "Advanced Report"
@@ -213,7 +217,7 @@ msgstr ""
 #: templates/autoreports/autoreports_form.html:17
 #: templates/autoreports/autoreports_list.html:7
 #: templates/autoreports/autoreports_report_list.html:7
-#: templates/autoreports/autoreports_wizard.html:178
+#: templates/autoreports/autoreports_wizard.html:193
 #: templates/autoreports/admin/autoreports_form.html:23
 #: templates/autoreports/admin/autoreports_wizard.html:20
 #: templates/autoreports/admin/report_list.html:7
@@ -223,7 +227,7 @@ msgstr ""
 #: templates/autoreports/autoreports_form.html:18
 #: templates/autoreports/autoreports_list.html:8
 #: templates/autoreports/autoreports_report_list.html:8
-#: templates/autoreports/autoreports_wizard.html:179
+#: templates/autoreports/autoreports_wizard.html:194
 #: templates/autoreports/admin/autoreports_form.html:27
 #: templates/autoreports/admin/autoreports_tools.html:22
 #: templates/autoreports/admin/autoreports_wizard.html:23
@@ -236,12 +240,12 @@ msgid "Edit"
 msgstr ""
 
 #: templates/autoreports/autoreports_form.html:35
-#: templates/autoreports/autoreports_wizard.html:194
+#: templates/autoreports/autoreports_wizard.html:209
 msgid "Create a report form"
 msgstr ""
 
 #: templates/autoreports/autoreports_form.html:40
-#: templates/autoreports/autoreports_wizard.html:199
+#: templates/autoreports/autoreports_wizard.html:214
 msgid "Report list"
 msgstr ""
 
@@ -251,7 +255,7 @@ msgid "Report Form"
 msgstr ""
 
 #: templates/autoreports/autoreports_form.html:58
-#: templates/autoreports/autoreports_wizard.html:242
+#: templates/autoreports/autoreports_wizard.html:259
 msgid "Delete report"
 msgstr ""
 
@@ -268,7 +272,7 @@ msgid "Report"
 msgstr ""
 
 #: templates/autoreports/autoreports_wizard.html:5
-#: templates/autoreports/autoreports_wizard.html:183
+#: templates/autoreports/autoreports_wizard.html:198
 #: templates/autoreports/admin/autoreports_tools.html:17
 #: templates/autoreports/admin/autoreports_wizard.html:27
 msgid "Wizard Report"
@@ -279,27 +283,27 @@ msgstr ""
 msgid "Are you sure you want to delete this report?"
 msgstr ""
 
-#: templates/autoreports/autoreports_wizard.html:206
+#: templates/autoreports/autoreports_wizard.html:221
 msgid "Wizard Form"
 msgstr ""
 
-#: templates/autoreports/autoreports_wizard.html:215
+#: templates/autoreports/autoreports_wizard.html:230
 msgid "See report"
 msgstr ""
 
-#: templates/autoreports/autoreports_wizard.html:228
+#: templates/autoreports/autoreports_wizard.html:243
 msgid "Drop the fields here"
 msgstr ""
 
-#: templates/autoreports/autoreports_wizard.html:231
+#: templates/autoreports/autoreports_wizard.html:246
 msgid "Selected fields"
 msgstr ""
 
-#: templates/autoreports/autoreports_wizard.html:243
+#: templates/autoreports/autoreports_wizard.html:260
 msgid "Save report"
 msgstr ""
 
-#: templates/autoreports/autoreports_wizard.html:245
+#: templates/autoreports/autoreports_wizard.html:262
 msgid "Create report"
 msgstr ""
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-06-23 13:06+0200\n"
+"POT-Creation-Date: 2011-07-08 09:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,11 +25,11 @@ msgstr "disponibilidad de %s"
 msgid "Indistinct"
 msgstr "Indistinto"
 
-#: adminfilters.py:207 fields.py:483
+#: adminfilters.py:207 fields.py:488
 msgid "Yes"
 msgstr "Si"
 
-#: adminfilters.py:207 fields.py:482
+#: adminfilters.py:207 fields.py:487
 msgid "No"
 msgstr "No"
 
@@ -69,19 +69,19 @@ msgstr "Termina en (diferencia mayusculas y minusculas)"
 msgid "Ends with (case-insensitive)"
 msgstr "Termina en (no diferencia mayusculas y minusculas)"
 
-#: fields.py:52 fields.py:388 fields.py:448
+#: fields.py:52 fields.py:388 fields.py:453
 msgid "Less than"
 msgstr "Menor que"
 
-#: fields.py:53 fields.py:389 fields.py:449
+#: fields.py:53 fields.py:389 fields.py:454
 msgid "Less than or equal"
 msgstr "Menor o igual que"
 
-#: fields.py:54 fields.py:390 fields.py:450
+#: fields.py:54 fields.py:390 fields.py:455
 msgid "Greater than"
 msgstr "Mayor que"
 
-#: fields.py:55 fields.py:391 fields.py:451
+#: fields.py:55 fields.py:391 fields.py:456
 msgid "Greater than or equal"
 msgstr "Mayor o igual que"
 
@@ -89,7 +89,7 @@ msgstr "Mayor o igual que"
 msgid "In (coma separated list)"
 msgstr "En (lista separada por coma)"
 
-#: fields.py:181 fields.py:645
+#: fields.py:181 fields.py:650
 msgid "Remove"
 msgstr "Eliminar"
 
@@ -105,8 +105,9 @@ msgstr "Otros campos para filtrar"
 msgid ""
 "Choose other fields, when you filter with this field, you will search in "
 "these also"
-msgstr "Elige otros campos, cuando tu filtres con este campo, tu buscaras en"
-"estos otros también"
+msgstr ""
+"Elige otros campos, cuando tu filtres con este campo, tu buscaras enestos "
+"otros también"
 
 #: fields.py:268
 msgid "Select"
@@ -116,7 +117,7 @@ msgstr "Selector"
 msgid "Radio buttons"
 msgstr "Radio buttons"
 
-#: fields.py:274 fields.py:366 fields.py:447 fields.py:503 fields.py:561
+#: fields.py:274 fields.py:366 fields.py:452 fields.py:508 fields.py:566
 msgid "Exact"
 msgstr "Exacto"
 
@@ -128,11 +129,11 @@ msgstr "Selector Multiple"
 msgid "CheckBox Multiple"
 msgstr "CheckBox Multiple"
 
-#: fields.py:316 fields.py:531
+#: fields.py:316 fields.py:536
 msgid "In"
 msgstr "En"
 
-#: fields.py:460
+#: fields.py:465
 msgid "Date Widget"
 msgstr "Widget de Fecha"
 
@@ -204,7 +205,13 @@ msgstr "Otro widget"
 msgid ""
 "Chose other widget. If you change the widget it's possible that the filter "
 "change also"
-msgstr "Elige otro widget. Si tu cambias el widget es posible que el filtro tambien cambie"
+msgstr ""
+"Elige otro widget. Si tu cambias el widget es posible que el filtro tambien "
+"cambie"
+
+#: wizards.py:103
+msgid "order"
+msgstr "orden"
 
 #: templates/autoreports/autoreports_form.html:5
 #: templates/autoreports/admin/autoreports_tools.html:12
@@ -214,7 +221,7 @@ msgstr "Informe Avanzado"
 #: templates/autoreports/autoreports_form.html:17
 #: templates/autoreports/autoreports_list.html:7
 #: templates/autoreports/autoreports_report_list.html:7
-#: templates/autoreports/autoreports_wizard.html:178
+#: templates/autoreports/autoreports_wizard.html:193
 #: templates/autoreports/admin/autoreports_form.html:23
 #: templates/autoreports/admin/autoreports_wizard.html:20
 #: templates/autoreports/admin/report_list.html:7
@@ -224,7 +231,7 @@ msgstr "Inicio"
 #: templates/autoreports/autoreports_form.html:18
 #: templates/autoreports/autoreports_list.html:8
 #: templates/autoreports/autoreports_report_list.html:8
-#: templates/autoreports/autoreports_wizard.html:179
+#: templates/autoreports/autoreports_wizard.html:194
 #: templates/autoreports/admin/autoreports_form.html:27
 #: templates/autoreports/admin/autoreports_tools.html:22
 #: templates/autoreports/admin/autoreports_wizard.html:23
@@ -237,12 +244,12 @@ msgid "Edit"
 msgstr "Editar"
 
 #: templates/autoreports/autoreports_form.html:35
-#: templates/autoreports/autoreports_wizard.html:194
+#: templates/autoreports/autoreports_wizard.html:209
 msgid "Create a report form"
 msgstr "Crear un formulario de informes"
 
 #: templates/autoreports/autoreports_form.html:40
-#: templates/autoreports/autoreports_wizard.html:199
+#: templates/autoreports/autoreports_wizard.html:214
 msgid "Report list"
 msgstr "Listado de informes"
 
@@ -252,7 +259,7 @@ msgid "Report Form"
 msgstr "Formulario de informes"
 
 #: templates/autoreports/autoreports_form.html:58
-#: templates/autoreports/autoreports_wizard.html:242
+#: templates/autoreports/autoreports_wizard.html:259
 msgid "Delete report"
 msgstr "Borrar informe"
 
@@ -269,7 +276,7 @@ msgid "Report"
 msgstr "Informe"
 
 #: templates/autoreports/autoreports_wizard.html:5
-#: templates/autoreports/autoreports_wizard.html:183
+#: templates/autoreports/autoreports_wizard.html:198
 #: templates/autoreports/admin/autoreports_tools.html:17
 #: templates/autoreports/admin/autoreports_wizard.html:27
 msgid "Wizard Report"
@@ -280,27 +287,27 @@ msgstr "Informe Wizard"
 msgid "Are you sure you want to delete this report?"
 msgstr "¿Estas seguro de que quieres borrar este informe?"
 
-#: templates/autoreports/autoreports_wizard.html:206
+#: templates/autoreports/autoreports_wizard.html:221
 msgid "Wizard Form"
 msgstr "Formulario Wizard"
 
-#: templates/autoreports/autoreports_wizard.html:215
+#: templates/autoreports/autoreports_wizard.html:230
 msgid "See report"
 msgstr "Ver informe"
 
-#: templates/autoreports/autoreports_wizard.html:228
+#: templates/autoreports/autoreports_wizard.html:243
 msgid "Drop the fields here"
 msgstr "Suelta los campos aquí"
 
-#: templates/autoreports/autoreports_wizard.html:231
+#: templates/autoreports/autoreports_wizard.html:246
 msgid "Selected fields"
 msgstr "Seleccionar campos"
 
-#: templates/autoreports/autoreports_wizard.html:243
+#: templates/autoreports/autoreports_wizard.html:260
 msgid "Save report"
 msgstr "Guardar informe"
 
-#: templates/autoreports/autoreports_wizard.html:245
+#: templates/autoreports/autoreports_wizard.html:262
 msgid "Create report"
 msgstr "Crear informe"
 
