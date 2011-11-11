@@ -402,7 +402,6 @@ class BaseDateFieldReportField(BaseReportField):
     def change_value_date_widget(self, value, key, request_get, field=None):
         if len(value) <= 0 or not value[0]:
             del request_get[key]
-        print key, value, request_get, field
         if (key.endswith('__day') or
             key.endswith('__month') or
             key.endswith('__year')):
