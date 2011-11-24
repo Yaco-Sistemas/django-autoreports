@@ -14,7 +14,6 @@
  # along with this programe.  If not, see <http://www.gnu.org/licenses/>.
 
 import csv
-import locale
 
 from django.conf import settings
 from django.contrib.admin import site
@@ -224,10 +223,6 @@ def csv_head(filename, columns, delimiter=','):
 def csv_body(response, class_model, object_list, list_fields, delimiter=',',
              separated_field=SEPARATED_FIELD, api=None):
     writer = csv.writer(response, delimiter=delimiter)
-    try:
-        oldlocale = locale.setlocale(locale.LC_ALL, 'es_ES.UTF8')
-    except locale.Error:
-        oldlocale = locale.setlocale(locale.LC_ALL, 'es_ES')
     for obj in object_list:
         values = []
         for field_name in list_fields:
@@ -241,4 +236,3 @@ def csv_body(response, class_model, object_list, list_fields, delimiter=',',
     value = value.replace('\t', ' ').replace('\r\n', '\n')
     value = value.replace('\n\n', '\n')
     response.content = value
-    locale.setlocale(locale.LC_ALL, oldlocale)
