@@ -192,13 +192,17 @@ def translate_fields(list_fields, class_model):
     list_translate = []
     lang = get_language()
     for field_name in list_fields:
-        try:
-            if is_translate_field(field_name, class_model):
-                field_name = '%s_%s' % (field_name, lang)
-            field = class_model._meta.get_field_by_name(field_name)
-            field_unicode = unicode(field[0].verbose_name)
-        except models.fields.FieldDoesNotExist:
-            field_unicode = field_name
+        if callable(field_name):
+            field_unicode = unicode(getattr(field_name, 'label',
+                                    getattr(field_name, 'func_name'))).encode('utf8')
+        else:
+            try:
+                if is_translate_field(field_name, class_model):
+                    field_name = '%s_%s' % (field_name, lang)
+                field = class_model._meta.get_field_by_name(field_name)
+                field_unicode = unicode(field[0].verbose_name)
+            except models.fields.FieldDoesNotExist:
+                field_unicode = field_name
         list_translate.append(field_unicode.encode('utf8'))
     return list_translate
 

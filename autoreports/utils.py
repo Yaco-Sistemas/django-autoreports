@@ -237,6 +237,8 @@ def get_field_by_name(model, field_name, checked_transmeta=True, api=None):
 def get_value_from_object(obj, field_name, separated_field=SEPARATED_FIELD, api=None):
     if not obj:
         return obj
+    if callable(field_name):
+        return field_name(obj)
     prefix, field_name_parsed = parsed_field_name(field_name, separated_field)
     model = type(obj)
     if not prefix:

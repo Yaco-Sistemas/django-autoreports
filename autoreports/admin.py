@@ -218,7 +218,7 @@ class ReportAdmin(ReportApi):
             headers = list(result_headers(cl))
             j = 0
             for i, header in enumerate(headers):
-                if not header.get('url', None) and not getattr(self.model, fields[i - j], None):
+                if not header.get('url', None) and isinstance(fields[i - j], basestring) and not getattr(self.model, fields[i - j], None):
                     del fields[i - j]
                     j = j + 1
         except IncorrectLookupParameters:
