@@ -1,3 +1,8 @@
+0.8.4
+=====
+* Removed error in en_US system
+* Display fields can contains a function instead
+
 0.8.3
 =====
 * Fixes datetime adaptor
