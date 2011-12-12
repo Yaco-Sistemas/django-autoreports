@@ -74,7 +74,7 @@ setup(
         'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
     ],
     license="LGPL 3",
-    keywords="django autoreports reports csv xls excel wizard filters change list",
+    keywords="django,autoreports,reports,csv,xls,excel,wizard,filters,change list",
     packages=find_packages('.'),
     include_package_data=True,
     zip_safe=False,
