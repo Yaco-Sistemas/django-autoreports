@@ -67,7 +67,7 @@ setup(
     author_email="pmartin@yaco.es",
     description="Django application that lets you create reports",
     long_description=(read('README') + '\n\n' + read('CHANGES')),
-    url='http://tracpub.yaco.es/djangoapps/wiki/AutoReports',
+    url='https://github.com/Yaco-Sistemas/django-autoreports',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: Django',
