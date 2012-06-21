@@ -22,7 +22,10 @@ from django.db import models
 from django.db.models.fields.related import RelatedField
 from django.db.models.related import RelatedObject
 from django.http import QueryDict
-from django.utils.importlib import import_module
+try:
+    from django.utils.importlib import import_module
+except:
+    from importlib import import_module
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import get_language
 
