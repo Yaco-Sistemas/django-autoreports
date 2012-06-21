@@ -451,9 +451,9 @@ def transmeta_inverse_field_name(model, field_name):
 
 
 def get_querystring_manager():
-    try:
-        import cmsutils
+    use_cmsutils = getattr(settings, 'AUTOREPORTS_USE_CMSUTILS', True)
+    if use_cmsutils:
         from cmsutils.adminfilters import QueryStringManager
-    except ImportError:
+    else:
         from autoreports.adminfilters import QueryStringManager
     return QueryStringManager

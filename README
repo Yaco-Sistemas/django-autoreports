@@ -161,6 +161,7 @@ You can set some settings and autoreports adapt itself:
  * AUTOREPORTS_SUBFIX = True # If you want that in the filter set the filter brackets
  * AUTOREPORTS_ADAPTOR = {'datetime': 'myappreport.fields.DateTimeFieldReportField'} # If you want change some adaptor
  * AUTOREPORTS_WIZARDFIELD = 'myappreport.wizards.MyWizardField' # If you want change the WizardField
+ * AUTOREPORTS_USE_CMSUTILS = True # If autoreports should use cmsutils package
 
 
 Development
