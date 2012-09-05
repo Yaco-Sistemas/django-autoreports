@@ -167,8 +167,8 @@ You can set some settings and autoreports adapt itself:
 Development
 ===========
 
-You can get the last bleeding edge version of autoreports by doing a checkout
-of its subversion repository::
+You can get the last bleeding edge version of autoreports by doing a clone
+of its git repository::
 
   git clone https://github.com/Yaco-Sistemas/django-autoreports.git
 
