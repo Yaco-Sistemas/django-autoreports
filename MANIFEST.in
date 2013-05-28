@@ -2,10 +2,12 @@ include AUTHORS
 include CHANGES
 include LICENSE
 include COPYING.LGPLv3
+include README.rst
 include requirements.txt
 include autoreports/locale/*/LC_MESSAGES/*.*
 include autoreports/templates/autoreports/*.*
 include autoreports/templates/autoreports/admin/*.*
 include autoreports/templates/autoreports/fields/*.*
+include autoreports/media/*.*
 exclude *~
 exclude *.pyc

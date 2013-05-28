@@ -1,10 +1,8 @@
-0.8.7
-=====
-* Fixed error when the language names (in django settings) are unicodes
-
 0.8.6
 =====
-* Fixed repository URL in README.
+* Fixed error: Add README.rst in MANIFEST
+* Fixed error: Add media in MANIFEST
+* Fixed error when the language names (in django settings) are unicodes
 
 0.8.5
 =====
