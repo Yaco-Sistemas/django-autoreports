@@ -1,3 +1,11 @@
+0.8.7
+=====
+* Fixed error when the language names (in django settings) are unicodes
+
+0.8.6
+=====
+* Fixed repository URL in README.
+
 0.8.5
 =====
 * Removed cmsutils dependence. Now is an optional package.
