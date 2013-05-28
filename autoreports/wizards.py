@@ -66,7 +66,8 @@ class WizardField(forms.Form):
         lang = get_language()
         if autoreports_i18n:
             for lang_code, lang_text in settings.LANGUAGES:
-                lang_text = unicode(lang_text.decode('utf-8'))
+                if not isinstance(lang_text, unicode):
+                    lang_text = unicode(lang_text.decode('utf-8'))
                 if lang_code == lang:
                     initial_label = autoreport_field.get_verbose_name()
                     initial_help_text = autoreport_field.get_help_text()
